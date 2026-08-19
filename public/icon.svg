@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title description">
+  <title id="title">TripGuide</title>
+  <desc id="description">La bàn và ghim bản đồ trên nền xanh rừng</desc>
+  <defs>
+    <linearGradient id="background" x1="68" y1="52" x2="446" y2="470" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#274c3e" />
+      <stop offset="1" stop-color="#10231c" />
+    </linearGradient>
+    <linearGradient id="pin" x1="192" y1="134" x2="330" y2="370" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#f7cf70" />
+      <stop offset="1" stop-color="#e5854f" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#background)" />
+  <circle cx="256" cy="256" r="160" fill="none" stroke="#f4f0e7" stroke-opacity=".28" stroke-width="12" />
+  <path d="M256 92v28M256 392v28M92 256h28M392 256h28" stroke="#f4f0e7" stroke-linecap="round" stroke-width="12" />
+  <path d="M256 132c-67 0-121 52-121 116 0 82 101 166 114 176a11 11 0 0 0 14 0c13-10 114-94 114-176 0-64-54-116-121-116Z" fill="url(#pin)" />
+  <circle cx="256" cy="247" r="50" fill="#f4f0e7" />
+  <path d="m274 220-12 35-35 13 12-36 35-12Z" fill="#1c3b30" />
+</svg>
