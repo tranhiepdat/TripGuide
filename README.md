@@ -2,6 +2,8 @@
 
 Mobile-first PWA cho chuyến Đài Loan 30/08–02/09/2026. App lấy lịch trình từ database Notion, giữ một snapshot offline và mở Google Maps bằng một chạm.
 
+**Mở app:** [https://tranhiepdat.github.io/TripGuide/](https://tranhiepdat.github.io/TripGuide/)
+
 ## Có gì trong app
 
 - **Bây giờ:** tự xác định hoạt động hiện tại, khoảng trống và điểm tiếp theo.
