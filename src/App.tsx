@@ -815,6 +815,9 @@ function MapChoiceDialog({ item, onClose }: { item: ItineraryItem; onClose: () =
   const planDirectionsIssue = getPlanDirectionsIssue(item);
   const currentUrl = getDirectionsUrl(item, 'current');
   const plannedUrl = getDirectionsUrl(item, 'plan');
+  const isTransitRoute = currentUrl
+    ? new URL(currentUrl).searchParams.get('travelmode') === 'transit'
+    : false;
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -852,7 +855,7 @@ function MapChoiceDialog({ item, onClose }: { item: ItineraryItem; onClose: () =
           <span className="map-choice-header-icon"><Navigation size={20} /></span>
           <div>
             <small>Mở Google Maps</small>
-            <h2 id="map-choice-title">Bạn muốn xuất phát từ đâu?</h2>
+            <h2 id="map-choice-title">Bạn muốn xem tuyến nào?</h2>
           </div>
           <button type="button" onClick={closeDialog} aria-label="Đóng lựa chọn chỉ đường">
             <X size={19} />
@@ -874,8 +877,12 @@ function MapChoiceDialog({ item, onClose }: { item: ItineraryItem; onClose: () =
             >
               <span><LocateFixed size={21} /></span>
               <span>
-                <strong>Vị trí hiện tại</strong>
-                <small>Google Maps dùng vị trí của điện thoại</small>
+                <strong>Từ vị trí hiện tại</strong>
+                <small>
+                  {isTransitRoute
+                    ? 'Xem các chuyến MRT / bus từ vị trí điện thoại'
+                    : 'Google Maps dùng vị trí của điện thoại'}
+                </small>
               </span>
               <ArrowUpRight size={18} />
             </a>
@@ -883,7 +890,7 @@ function MapChoiceDialog({ item, onClose }: { item: ItineraryItem; onClose: () =
             <button className="map-choice-option current-location unavailable" type="button" disabled>
               <span><LocateFixed size={21} /></span>
               <span>
-                <strong>Vị trí hiện tại</strong>
+                <strong>Từ vị trí hiện tại</strong>
                 <small>{directionsIssue}</small>
               </span>
             </button>
@@ -899,8 +906,8 @@ function MapChoiceDialog({ item, onClose }: { item: ItineraryItem; onClose: () =
             >
               <span><Route size={21} /></span>
               <span>
-                <strong>Điểm đầu trong plan</strong>
-                <small>{plannedOrigin}</small>
+                <strong>Từ điểm đầu trong plan</strong>
+                <small>{plannedOrigin}{isTransitRoute ? ' · xem MRT / bus' : ''}</small>
               </span>
               <ArrowUpRight size={18} />
             </a>
@@ -908,12 +915,19 @@ function MapChoiceDialog({ item, onClose }: { item: ItineraryItem; onClose: () =
             <button className="map-choice-option plan-location unavailable" type="button" disabled>
               <span><Route size={21} /></span>
               <span>
-                <strong>Điểm đầu trong plan</strong>
+                <strong>Từ điểm đầu trong plan</strong>
                 <small>{planDirectionsIssue ?? directionsIssue ?? 'Chưa có keyword điểm bắt đầu cho chặng này'}</small>
               </span>
             </button>
           )}
         </div>
+
+        {isTransitRoute && (
+          <p className="map-choice-transit-note">
+            <TrainFront size={16} />
+            <span>Maps sẽ tính một hành trình công cộng tới đích để hiện đúng chuyến. Các ga trung gian vẫn nằm trong plan.</span>
+          </p>
+        )}
       </section>
     </dialog>
   );

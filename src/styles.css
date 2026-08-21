@@ -1551,6 +1551,25 @@ main {
   box-shadow: none;
 }
 
+.map-choice-transit-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 11px 2px 0;
+  padding: 10px 11px;
+  color: #426353;
+  background: #edf4e9;
+  border-radius: 13px;
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 1.45;
+}
+
+.map-choice-transit-note svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
 @keyframes map-sheet-in {
   from {
     opacity: 0;

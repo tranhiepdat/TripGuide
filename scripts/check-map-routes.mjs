@@ -63,12 +63,24 @@ for (const item of itinerary) {
   assert.equal(currentUrl.searchParams.get('destination'), destination);
   assert.equal(currentUrl.searchParams.has('origin'), false, `${item.title}: current route must omit origin`);
 
+  const travelMode = currentUrl.searchParams.get('travelmode');
+  if (travelMode === 'transit') {
+    assert.equal(currentUrl.searchParams.has('waypoints'), false, `${item.title}: transit route must omit waypoints`);
+    assert.equal(currentUrl.searchParams.has('dir_action'), false, `${item.title}: transit route must show route options`);
+  } else {
+    assert.equal(currentUrl.searchParams.get('dir_action'), 'navigate', `${item.title}: non-transit route should navigate`);
+  }
+
   if (plannedOrigin) {
     assert.ok(planHref, `${item.title}: resolved plan origin must have a URL`);
     const planUrl = new URL(planHref);
     assert.equal(planUrl.searchParams.get('origin'), plannedOrigin, `${item.title}: plan origin mismatch`);
     const waypoints = planUrl.searchParams.get('waypoints')?.split('|') ?? [];
     assert.equal(waypoints.includes(plannedOrigin), false, `${item.title}: origin repeated as waypoint`);
+    if (travelMode === 'transit') {
+      assert.equal(planUrl.searchParams.has('waypoints'), false, `${item.title}: planned transit must stay one leg`);
+      assert.equal(planUrl.searchParams.has('dir_action'), false, `${item.title}: planned transit must show MRT/bus choices`);
+    }
   } else {
     assert.equal(planHref, undefined, `${item.title}: ambiguous plan route must stay disabled`);
   }
@@ -80,24 +92,24 @@ const airportCurrent = new URL(getDirectionsUrl(airportMrt, 'current'));
 const airportPlan = new URL(getDirectionsUrl(airportMrt, 'plan'));
 assert.equal(airportCurrent.searchParams.has('origin'), false);
 assert.equal(airportPlan.searchParams.get('origin'), 'Airport Terminal 1 Station (A12)');
-assert.equal(airportPlan.searchParams.get('waypoints'), 'Taipei Main Station (A1)');
+assert.equal(airportPlan.searchParams.has('waypoints'), false);
+assert.equal(airportPlan.searchParams.has('dir_action'), false);
 assert.equal(airportPlan.searchParams.get('destination'), 'Muzik Hotel Ximen Station Branch');
+assert.equal(airportPlan.searchParams.get('travelmode'), 'transit');
 
 const multiLeg = itinerary.find((item) => item.title.startsWith('Ximen → A1'));
 assert.ok(multiLeg, 'Representative multi-leg airport route is missing');
 const multiLegPlan = new URL(getDirectionsUrl(multiLeg, 'plan'));
 assert.equal(multiLegPlan.searchParams.get('origin'), 'Ximen Station');
-assert.equal(multiLegPlan.searchParams.get('waypoints'), 'Beimen Station|Taipei Main Station A1');
+assert.equal(multiLegPlan.searchParams.has('waypoints'), false);
 assert.equal(multiLegPlan.searchParams.get('destination'), 'Airport Terminal 1 Station A12');
+assert.equal(multiLegPlan.searchParams.get('travelmode'), 'transit');
 
 const supplementalPoi = itinerary.find((item) => item.title.startsWith('Syntrend Creative Park'));
 assert.ok(supplementalPoi, 'Representative transit-to-POI row is missing');
 const supplementalPlan = new URL(getDirectionsUrl(supplementalPoi, 'plan'));
 assert.equal(supplementalPlan.searchParams.get('origin'), 'Ximen Station');
-assert.equal(
-  supplementalPlan.searchParams.get('waypoints'),
-  'Zhongxiao Xinsheng Station|Syntrend Creative Park',
-);
+assert.equal(supplementalPlan.searchParams.has('waypoints'), false);
 assert.equal(supplementalPlan.searchParams.get('destination'), 'Guang Hua Digital Plaza');
 assert.equal(supplementalPlan.searchParams.get('travelmode'), 'transit');
 
@@ -107,10 +119,7 @@ const supplementalFixture = {
 };
 const supplementalFixturePlan = new URL(getDirectionsUrl(supplementalFixture, 'plan'));
 assert.equal(supplementalFixturePlan.searchParams.get('origin'), 'Ximen Station');
-assert.equal(
-  supplementalFixturePlan.searchParams.get('waypoints'),
-  'Zhongxiao Xinsheng Station|Syntrend Creative Park',
-);
+assert.equal(supplementalFixturePlan.searchParams.has('waypoints'), false);
 assert.equal(supplementalFixturePlan.searchParams.get('destination'), 'Guang Hua Digital Plaza');
 
 const observatory = itinerary.find((item) => item.title === 'Taipei 101 Observatory');
@@ -120,6 +129,12 @@ assert.equal(new URL(getDirectionsUrl(observatory, 'plan')).searchParams.get('tr
 const taxiLeg = itinerary.find((item) => item.title.startsWith('Wu Jia Beef Noodles'));
 assert.ok(taxiLeg, 'Representative taxi row is missing');
 assert.equal(new URL(getDirectionsUrl(taxiLeg, 'plan')).searchParams.get('travelmode'), 'driving');
+
+const multiStopTaxi = itinerary.find((item) => item.title.startsWith('Dadaocheng sunset'));
+assert.ok(multiStopTaxi, 'Representative multi-stop taxi row is missing');
+const multiStopTaxiPlan = new URL(getDirectionsUrl(multiStopTaxi, 'plan'));
+assert.equal(multiStopTaxiPlan.searchParams.get('waypoints'), 'Dadaocheng Wharf');
+assert.equal(multiStopTaxiPlan.searchParams.get('dir_action'), 'navigate');
 
 const airportWalk = itinerary.find((item) => item.title === 'Nhập cảnh + lấy hành lý');
 assert.ok(airportWalk, 'Representative in-airport walking row is missing');
