@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "node scripts/check-map-routes.mjs && tsc -b && vite build",
+    "check:maps": "node scripts/check-map-routes.mjs",
     "preview": "vite preview",
     "typecheck": "tsc -b --pretty false",
     "sync:notion": "node scripts/sync-notion.mjs"
