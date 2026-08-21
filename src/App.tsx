@@ -880,8 +880,21 @@ function QuickMap({
   );
 }
 
+type DepartureChoice = 'plan' | 'now';
+
+function getPlanRouteTiming(item: ItineraryItem) {
+  const [, month, day] = item.date.split('-');
+  const usesDepartureTime = item.categories.includes('Di chuyển');
+  return {
+    compact: `${item.start} · ${day}/${month}`,
+    instruction: `${item.start} ngày ${day}/${month}`,
+    mapsAction: usesDepartureTime ? 'Rời đi lúc' : 'Đến lúc',
+  };
+}
+
 function MapChoiceDialog({ item, onClose }: { item: ItineraryItem; onClose: () => void }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const [departureChoice, setDepartureChoice] = useState<DepartureChoice>('plan');
   const plannedOrigin = getPlannedOrigin(item);
   const destination = getMapDestination(item);
   const directionsIssue = getDirectionsIssue(item);
@@ -891,6 +904,7 @@ function MapChoiceDialog({ item, onClose }: { item: ItineraryItem; onClose: () =
   const isTransitRoute = currentUrl
     ? new URL(currentUrl).searchParams.get('travelmode') === 'transit'
     : false;
+  const planTiming = getPlanRouteTiming(item);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -938,6 +952,55 @@ function MapChoiceDialog({ item, onClose }: { item: ItineraryItem; onClose: () =
         <p id="map-choice-destination">
           Đi đến <strong>{destination}</strong>
         </p>
+
+        {isTransitRoute && (
+          <section className="map-departure-choice" aria-labelledby="map-departure-title">
+            <div className="map-departure-heading">
+              <span><Clock3 size={17} /></span>
+              <div>
+                <small>Thời điểm tìm chuyến</small>
+                <strong id="map-departure-title">Tính tuyến theo giờ nào?</strong>
+              </div>
+            </div>
+
+            <div className="map-departure-toggle" role="group" aria-label="Chọn thời gian tính tuyến">
+              <button
+                type="button"
+                aria-pressed={departureChoice === 'plan'}
+                onClick={() => setDepartureChoice('plan')}
+              >
+                <CalendarDays size={17} />
+                <span>
+                  <strong>Theo plan</strong>
+                  <small>{planTiming.compact}</small>
+                </span>
+              </button>
+              <button
+                type="button"
+                aria-pressed={departureChoice === 'now'}
+                onClick={() => setDepartureChoice('now')}
+              >
+                <TimerReset size={17} />
+                <span>
+                  <strong>Bây giờ</strong>
+                  <small>Giờ hiện tại</small>
+                </span>
+              </button>
+            </div>
+
+            <p className="map-departure-hint" id="map-departure-hint" aria-live="polite">
+              <Info size={15} />
+              {departureChoice === 'plan' ? (
+                <span>
+                  <strong>Miễn phí · 1 bước trong Maps:</strong>{' '}
+                  chọn “{planTiming.mapsAction}” → {planTiming.instruction}.
+                </span>
+              ) : (
+                <span>Maps sẽ hiện các chuyến sắp khởi hành ngay lúc bạn mở.</span>
+              )}
+            </p>
+          </section>
+        )}
 
         <div className="map-choice-options">
           {currentUrl ? (
@@ -998,7 +1061,7 @@ function MapChoiceDialog({ item, onClose }: { item: ItineraryItem; onClose: () =
         {isTransitRoute && (
           <p className="map-choice-transit-note">
             <TrainFront size={16} />
-            <span>Maps sẽ tính một hành trình công cộng tới đích để hiện đúng chuyến. Các ga trung gian vẫn nằm trong plan.</span>
+            <span>Maps sẽ tính chuyến MRT / bus phù hợp với giờ bạn chọn. Các ga trung gian vẫn nằm trong plan.</span>
           </p>
         )}
       </section>

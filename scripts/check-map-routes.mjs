@@ -62,6 +62,7 @@ for (const item of itinerary) {
   assert.equal(currentUrl.pathname, '/maps/dir/');
   assert.equal(currentUrl.searchParams.get('destination'), destination);
   assert.equal(currentUrl.searchParams.has('origin'), false, `${item.title}: current route must omit origin`);
+  assert.equal(currentUrl.searchParams.has('departure_time'), false, `${item.title}: Maps URLs do not support departure_time`);
 
   const travelMode = currentUrl.searchParams.get('travelmode');
   if (travelMode === 'transit') {
@@ -75,6 +76,7 @@ for (const item of itinerary) {
     assert.ok(planHref, `${item.title}: resolved plan origin must have a URL`);
     const planUrl = new URL(planHref);
     assert.equal(planUrl.searchParams.get('origin'), plannedOrigin, `${item.title}: plan origin mismatch`);
+    assert.equal(planUrl.searchParams.has('departure_time'), false, `${item.title}: planned time stays in the UI, not the URL`);
     const waypoints = planUrl.searchParams.get('waypoints')?.split('|') ?? [];
     assert.equal(waypoints.includes(plannedOrigin), false, `${item.title}: origin repeated as waypoint`);
     if (travelMode === 'transit') {
