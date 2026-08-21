@@ -7,6 +7,7 @@ import {
   CalendarDays,
   Check,
   ChevronDown,
+  ChevronLeft,
   ChevronRight,
   CircleDot,
   Clock3,
@@ -55,6 +56,10 @@ type TimelineState = {
 };
 
 type OpenDirections = (item: ItineraryItem) => void;
+
+const PREVIEW_START_MINUTES = 5 * 60;
+const PREVIEW_END_MINUTES = 23 * 60;
+const PREVIEW_STEP_MINUTES = 5;
 
 const SOURCE_URL =
   'https://app.notion.com/p/aef8fa576f704484bc66494b64004474?v=3afe8e18611981c79e78000c06433c8e';
@@ -357,6 +362,11 @@ function PreviewControls({
   onEnable: () => void;
   onReset: () => void;
 }) {
+  const stepPreviewTime = (direction: -1 | 1) => {
+    const nextMinutes = previewMinutes + direction * PREVIEW_STEP_MINUTES;
+    onMinutesChange(Math.min(PREVIEW_END_MINUTES, Math.max(PREVIEW_START_MINUTES, nextMinutes)));
+  };
+
   return (
     <section className="preview-panel" aria-label="Xem thử lịch trình">
       <div className="section-heading compact-heading">
@@ -383,20 +393,46 @@ function PreviewControls({
         <label>
           <span className="sr-only">Chọn thời gian xem thử</span>
           <input
+            id="preview-time-range"
             type="range"
-            min={300}
-            max={1380}
-            step={5}
+            min={PREVIEW_START_MINUTES}
+            max={PREVIEW_END_MINUTES}
+            step={PREVIEW_STEP_MINUTES}
             value={previewMinutes}
+            aria-valuetext={formatPreviewClock(previewMinutes)}
             onChange={(event) => onMinutesChange(Number(event.target.value))}
           />
         </label>
         <span>23:00</span>
       </div>
       <div className="preview-commit">
-        <div>
-          <small>Giờ Đài Loan</small>
-          <strong>{formatPreviewClock(previewMinutes)}</strong>
+        <div className="preview-time-control" role="group" aria-label="Điều chỉnh thời gian xem thử">
+          <button
+            className="time-step-button"
+            type="button"
+            aria-label="Lùi 5 phút"
+            title="Lùi 5 phút"
+            disabled={previewMinutes <= PREVIEW_START_MINUTES}
+            onClick={() => stepPreviewTime(-1)}
+          >
+            <ChevronLeft size={21} />
+          </button>
+          <div className="preview-time-readout">
+            <small>Giờ Đài Loan</small>
+            <output htmlFor="preview-time-range" aria-live="polite" aria-atomic="true">
+              <strong>{formatPreviewClock(previewMinutes)}</strong>
+            </output>
+          </div>
+          <button
+            className="time-step-button"
+            type="button"
+            aria-label="Tiến 5 phút"
+            title="Tiến 5 phút"
+            disabled={previewMinutes >= PREVIEW_END_MINUTES}
+            onClick={() => stepPreviewTime(1)}
+          >
+            <ChevronRight size={21} />
+          </button>
         </div>
         {enabled ? (
           <button className="secondary-action" type="button" onClick={onReset}>

@@ -760,11 +760,35 @@ main {
   padding-inline: 8px;
 }
 
+.time-step-button {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(20, 38, 31, 0.09);
+  border-radius: 50%;
+  box-shadow: 0 5px 15px rgba(56, 45, 36, 0.08);
+  cursor: pointer;
+  place-items: center;
+}
+
+.time-step-button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.time-step-button:disabled {
+  opacity: 0.34;
+  cursor: default;
+}
+
 .time-slider-row {
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 9px;
+  min-width: 0;
   margin-top: 19px;
 }
 
@@ -809,14 +833,22 @@ main {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 12px;
   margin-top: 18px;
 }
 
-.preview-commit > div {
+.preview-time-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.preview-time-readout {
   display: flex;
   align-items: flex-start;
   flex-direction: column;
+  min-width: 58px;
 }
 
 .preview-commit small {
@@ -827,10 +859,16 @@ main {
 }
 
 .preview-commit strong {
+  display: block;
   margin-top: 1px;
   color: var(--ink);
   font-size: 24px;
   letter-spacing: -0.05em;
+}
+
+.preview-commit > .primary-action,
+.preview-commit > .secondary-action {
+  flex: 1 1 110px;
 }
 
 .primary-action,
