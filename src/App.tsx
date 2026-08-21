@@ -59,7 +59,7 @@ type OpenDirections = (item: ItineraryItem) => void;
 
 const PREVIEW_START_MINUTES = 5 * 60;
 const PREVIEW_END_MINUTES = 23 * 60;
-const PREVIEW_STEP_MINUTES = 5;
+const PREVIEW_SLIDER_STEP_MINUTES = 5;
 
 const SOURCE_URL =
   'https://app.notion.com/p/aef8fa576f704484bc66494b64004474?v=3afe8e18611981c79e78000c06433c8e';
@@ -195,6 +195,41 @@ function getTaipeiMinutes(date: Date) {
   const hour = Number(parts.find((part) => part.type === 'hour')?.value ?? 0);
   const minute = Number(parts.find((part) => part.type === 'minute')?.value ?? 0);
   return hour * 60 + minute;
+}
+
+function getPreviewPosition(item: ItineraryItem) {
+  const previewAt = new Date(toInstant(item, 'start').getTime() + 5 * 60_000);
+  return {
+    day: item.dayNumber,
+    minutes: getTaipeiMinutes(previewAt),
+  };
+}
+
+function getAdjacentDestinations(day: number, minutes: number) {
+  const destinations = orderedItems();
+  const cursorMs = getPreviewInstant(day, minutes).getTime();
+  const currentIndex = destinations.findIndex(
+    (item) =>
+      toInstant(item, 'start').getTime() <= cursorMs &&
+      cursorMs < toInstant(item, 'end').getTime(),
+  );
+
+  if (currentIndex >= 0) {
+    return {
+      previous: destinations[currentIndex - 1],
+      next: destinations[currentIndex + 1],
+    };
+  }
+
+  const nextIndex = destinations.findIndex(
+    (item) => toInstant(item, 'start').getTime() > cursorMs,
+  );
+  if (nextIndex < 0) return { previous: destinations.at(-1), next: undefined };
+
+  return {
+    previous: destinations[nextIndex - 1],
+    next: destinations[nextIndex],
+  };
 }
 
 function countdownLabel(target: Date, now: Date) {
@@ -351,6 +386,7 @@ function PreviewControls({
   enabled,
   onDayChange,
   onMinutesChange,
+  onDestinationChange,
   onEnable,
   onReset,
 }: {
@@ -359,13 +395,11 @@ function PreviewControls({
   enabled: boolean;
   onDayChange: (day: number) => void;
   onMinutesChange: (minutes: number) => void;
+  onDestinationChange: (item: ItineraryItem) => void;
   onEnable: () => void;
   onReset: () => void;
 }) {
-  const stepPreviewTime = (direction: -1 | 1) => {
-    const nextMinutes = previewMinutes + direction * PREVIEW_STEP_MINUTES;
-    onMinutesChange(Math.min(PREVIEW_END_MINUTES, Math.max(PREVIEW_START_MINUTES, nextMinutes)));
-  };
+  const { previous, next } = getAdjacentDestinations(previewDay, previewMinutes);
 
   return (
     <section className="preview-panel" aria-label="Xem thử lịch trình">
@@ -397,7 +431,7 @@ function PreviewControls({
             type="range"
             min={PREVIEW_START_MINUTES}
             max={PREVIEW_END_MINUTES}
-            step={PREVIEW_STEP_MINUTES}
+            step={PREVIEW_SLIDER_STEP_MINUTES}
             value={previewMinutes}
             aria-valuetext={formatPreviewClock(previewMinutes)}
             onChange={(event) => onMinutesChange(Number(event.target.value))}
@@ -406,14 +440,14 @@ function PreviewControls({
         <span>23:00</span>
       </div>
       <div className="preview-commit">
-        <div className="preview-time-control" role="group" aria-label="Điều chỉnh thời gian xem thử">
+        <div className="preview-time-control" role="group" aria-label="Chuyển giữa các điểm trong lịch trình">
           <button
-            className="time-step-button"
+            className="destination-step-button"
             type="button"
-            aria-label="Lùi 5 phút"
-            title="Lùi 5 phút"
-            disabled={previewMinutes <= PREVIEW_START_MINUTES}
-            onClick={() => stepPreviewTime(-1)}
+            aria-label={previous ? `Điểm trước: ${previous.title}` : 'Không có điểm trước'}
+            title={previous ? `Điểm trước: ${previous.title}` : 'Không có điểm trước'}
+            disabled={!previous}
+            onClick={() => previous && onDestinationChange(previous)}
           >
             <ChevronLeft size={21} />
           </button>
@@ -424,12 +458,12 @@ function PreviewControls({
             </output>
           </div>
           <button
-            className="time-step-button"
+            className="destination-step-button"
             type="button"
-            aria-label="Tiến 5 phút"
-            title="Tiến 5 phút"
-            disabled={previewMinutes >= PREVIEW_END_MINUTES}
-            onClick={() => stepPreviewTime(1)}
+            aria-label={next ? `Điểm tiếp theo: ${next.title}` : 'Không có điểm tiếp theo'}
+            title={next ? `Điểm tiếp theo: ${next.title}` : 'Không có điểm tiếp theo'}
+            disabled={!next}
+            onClick={() => next && onDestinationChange(next)}
           >
             <ChevronRight size={21} />
           </button>
@@ -459,6 +493,7 @@ function NowScreen({
   onDirections,
   onPreviewDay,
   onPreviewMinutes,
+  onPreviewDestination,
   onPreviewEnable,
   onPreviewReset,
 }: {
@@ -472,6 +507,7 @@ function NowScreen({
   onDirections: OpenDirections;
   onPreviewDay: (day: number) => void;
   onPreviewMinutes: (minutes: number) => void;
+  onPreviewDestination: (item: ItineraryItem) => void;
   onPreviewEnable: () => void;
   onPreviewReset: () => void;
 }) {
@@ -590,6 +626,7 @@ function NowScreen({
         enabled={isPreviewing}
         onDayChange={onPreviewDay}
         onMinutesChange={onPreviewMinutes}
+        onDestinationChange={onPreviewDestination}
         onEnable={onPreviewEnable}
         onReset={onPreviewReset}
       />
@@ -1040,11 +1077,16 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const previewItem = (item: ItineraryItem) => {
-    const previewAt = new Date(toInstant(item, 'start').getTime() + 5 * 60_000);
-    setPreviewDay(item.dayNumber);
-    setPreviewMinutes(getTaipeiMinutes(previewAt));
+  const previewDestination = (item: ItineraryItem) => {
+    const position = getPreviewPosition(item);
+    setPreviewDay(position.day);
+    setSelectedDay(position.day);
+    setPreviewMinutes(position.minutes);
     setIsPreviewing(true);
+  };
+
+  const previewItem = (item: ItineraryItem) => {
+    previewDestination(item);
     setMode('now');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -1094,6 +1136,7 @@ function App() {
               if (isPreviewing) setSelectedDay(day);
             }}
             onPreviewMinutes={setPreviewMinutes}
+            onPreviewDestination={previewDestination}
             onPreviewEnable={() => setIsPreviewing(true)}
             onPreviewReset={() => setIsPreviewing(false)}
           />
