@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import {
   ArrowRight,
   ArrowUpRight,
@@ -30,10 +30,15 @@ import {
   TrainFront,
   UtensilsCrossed,
   Wifi,
+  X,
 } from 'lucide-react';
 import {
   getDirectionsUrl,
+  getDirectionsIssue,
   getGoogleMapsUrl,
+  getMapDestination,
+  getPlanDirectionsIssue,
+  getPlannedOrigin,
   itinerary,
   itineraryExportedAt,
   type ItineraryItem,
@@ -48,6 +53,8 @@ type TimelineState = {
   previous?: ItineraryItem;
   completed: number;
 };
+
+type OpenDirections = (item: ItineraryItem) => void;
 
 const SOURCE_URL =
   'https://app.notion.com/p/aef8fa576f704484bc66494b64004474?v=3afe8e18611981c79e78000c06433c8e';
@@ -269,6 +276,7 @@ function ActivityCard({
   state = 'upcoming',
   expanded,
   onToggle,
+  onDirections,
   onPreview,
   compact = false,
 }: {
@@ -276,6 +284,7 @@ function ActivityCard({
   state?: 'current' | 'past' | 'upcoming';
   expanded: boolean;
   onToggle: () => void;
+  onDirections: OpenDirections;
   onPreview?: () => void;
   compact?: boolean;
 }) {
@@ -313,9 +322,9 @@ function ActivityCard({
           </div>
           <p>{item.note}</p>
           <div className="activity-actions">
-            <a className="map-button primary" href={getDirectionsUrl(item)} target="_blank" rel="noreferrer">
+            <button className="map-button primary" type="button" onClick={() => onDirections(item)}>
               <Navigation size={17} /> Chỉ đường
-            </a>
+            </button>
             <a className="map-button" href={getGoogleMapsUrl(item)} target="_blank" rel="noreferrer">
               <Map size={17} /> Xem điểm
             </a>
@@ -370,12 +379,12 @@ function PreviewControls({
         ))}
       </div>
       <div className="time-slider-row">
-        <span>06:00</span>
+        <span>05:00</span>
         <label>
           <span className="sr-only">Chọn thời gian xem thử</span>
           <input
             type="range"
-            min={360}
+            min={300}
             max={1380}
             step={5}
             value={previewMinutes}
@@ -411,6 +420,7 @@ function NowScreen({
   previewMinutes,
   expandedId,
   onExpand,
+  onDirections,
   onPreviewDay,
   onPreviewMinutes,
   onPreviewEnable,
@@ -423,6 +433,7 @@ function NowScreen({
   previewMinutes: number;
   expandedId?: string;
   onExpand: (id: string) => void;
+  onDirections: OpenDirections;
   onPreviewDay: (day: number) => void;
   onPreviewMinutes: (minutes: number) => void;
   onPreviewEnable: () => void;
@@ -497,6 +508,7 @@ function NowScreen({
             state="current"
             expanded
             onToggle={() => onExpand(timeline.current!.id)}
+            onDirections={onDirections}
           />
         ) : beforeTrip ? (
           <div className="countdown-card">
@@ -531,6 +543,7 @@ function NowScreen({
             item={timeline.next}
             expanded={expandedId === timeline.next.id}
             onToggle={() => onExpand(timeline.next!.id)}
+            onDirections={onDirections}
           />
         </section>
       )}
@@ -554,6 +567,7 @@ function DayScreen({
   effectiveNow,
   expandedId,
   onExpand,
+  onDirections,
   onPreviewItem,
 }: {
   selectedDay: number;
@@ -561,6 +575,7 @@ function DayScreen({
   effectiveNow: Date;
   expandedId?: string;
   onExpand: (id: string) => void;
+  onDirections: OpenDirections;
   onPreviewItem: (item: ItineraryItem) => void;
 }) {
   const meta = dayMeta[selectedDay as keyof typeof dayMeta];
@@ -616,6 +631,7 @@ function DayScreen({
                 state={state}
                 expanded={expandedId === item.id}
                 onToggle={() => onExpand(item.id)}
+                onDirections={onDirections}
                 onPreview={() => onPreviewItem(item)}
               />
             </div>
@@ -701,11 +717,13 @@ function RouteScreen({
   onDayChange,
   expandedId,
   onExpand,
+  onDirections,
 }: {
   selectedDay: number;
   onDayChange: (day: number) => void;
   expandedId?: string;
   onExpand: (id: string) => void;
+  onDirections: OpenDirections;
 }) {
   const routes = itinerary.filter(
     (item) => item.dayNumber === selectedDay && isTransport(item),
@@ -723,7 +741,7 @@ function RouteScreen({
 
       <div className="route-note">
         <Info size={17} />
-        <span>Maps dùng vị trí hiện tại của bạn. Lịch tàu, MRT và bus nằm trong ghi chú từng chặng.</span>
+        <span>Chọn xuất phát từ vị trí hiện tại hoặc điểm đầu đã lưu trong plan.</span>
       </div>
 
       <div className="day-pills route-days">
@@ -751,11 +769,12 @@ function RouteScreen({
                 item={item}
                 expanded={expandedId === item.id}
                 onToggle={() => onExpand(item.id)}
+                onDirections={onDirections}
                 compact
               />
-              <a href={getDirectionsUrl(item)} target="_blank" rel="noreferrer" className="route-map-cta">
+              <button type="button" onClick={() => onDirections(item)} className="route-map-cta">
                 Mở Google Maps <ArrowUpRight size={16} />
-              </a>
+              </button>
             </div>
           </div>
         ))}
@@ -764,19 +783,139 @@ function RouteScreen({
   );
 }
 
-function QuickMap({ item, relation }: { item?: ItineraryItem; relation: 'current' | 'next' }) {
+function QuickMap({
+  item,
+  relation,
+  onDirections,
+}: {
+  item?: ItineraryItem;
+  relation: 'current' | 'next';
+  onDirections: OpenDirections;
+}) {
   if (!item) return null;
   return (
     <div className="quick-map-wrap">
-      <a href={getDirectionsUrl(item)} target="_blank" rel="noreferrer" className="quick-map">
+      <button type="button" onClick={() => onDirections(item)} className="quick-map">
         <span className="quick-map-icon"><Navigation size={19} /></span>
         <span>
           <small>Maps tới điểm {relation === 'current' ? 'hiện tại' : 'tiếp theo'}</small>
           <strong>{item.title}</strong>
         </span>
         <ArrowUpRight size={18} />
-      </a>
+      </button>
     </div>
+  );
+}
+
+function MapChoiceDialog({ item, onClose }: { item: ItineraryItem; onClose: () => void }) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const plannedOrigin = getPlannedOrigin(item);
+  const destination = getMapDestination(item);
+  const directionsIssue = getDirectionsIssue(item);
+  const planDirectionsIssue = getPlanDirectionsIssue(item);
+  const currentUrl = getDirectionsUrl(item, 'current');
+  const plannedUrl = getDirectionsUrl(item, 'plan');
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    const previousOverflow = document.body.style.overflow;
+    dialog.showModal();
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      if (dialog.open) dialog.close();
+    };
+  }, [item]);
+
+  const closeDialog = () => dialogRef.current?.close();
+
+  return (
+    <dialog
+      className="map-choice-dialog"
+      ref={dialogRef}
+      aria-labelledby="map-choice-title"
+      aria-describedby="map-choice-destination"
+      onClose={onClose}
+      onCancel={(event) => {
+        event.preventDefault();
+        closeDialog();
+      }}
+      onClick={(event) => {
+        if (event.target === event.currentTarget) closeDialog();
+      }}
+    >
+      <section className="map-choice-sheet">
+        <span className="map-choice-handle" aria-hidden="true" />
+        <header className="map-choice-header">
+          <span className="map-choice-header-icon"><Navigation size={20} /></span>
+          <div>
+            <small>Mở Google Maps</small>
+            <h2 id="map-choice-title">Bạn muốn xuất phát từ đâu?</h2>
+          </div>
+          <button type="button" onClick={closeDialog} aria-label="Đóng lựa chọn chỉ đường">
+            <X size={19} />
+          </button>
+        </header>
+
+        <p id="map-choice-destination">
+          Đi đến <strong>{destination}</strong>
+        </p>
+
+        <div className="map-choice-options">
+          {currentUrl ? (
+            <a
+              className="map-choice-option current-location"
+              href={currentUrl}
+              target="_blank"
+              rel="noreferrer"
+              onClick={closeDialog}
+            >
+              <span><LocateFixed size={21} /></span>
+              <span>
+                <strong>Vị trí hiện tại</strong>
+                <small>Google Maps dùng vị trí của điện thoại</small>
+              </span>
+              <ArrowUpRight size={18} />
+            </a>
+          ) : (
+            <button className="map-choice-option current-location unavailable" type="button" disabled>
+              <span><LocateFixed size={21} /></span>
+              <span>
+                <strong>Vị trí hiện tại</strong>
+                <small>{directionsIssue}</small>
+              </span>
+            </button>
+          )}
+
+          {plannedOrigin && plannedUrl ? (
+            <a
+              className="map-choice-option plan-location"
+              href={plannedUrl}
+              target="_blank"
+              rel="noreferrer"
+              onClick={closeDialog}
+            >
+              <span><Route size={21} /></span>
+              <span>
+                <strong>Điểm đầu trong plan</strong>
+                <small>{plannedOrigin}</small>
+              </span>
+              <ArrowUpRight size={18} />
+            </a>
+          ) : (
+            <button className="map-choice-option plan-location unavailable" type="button" disabled>
+              <span><Route size={21} /></span>
+              <span>
+                <strong>Điểm đầu trong plan</strong>
+                <small>{planDirectionsIssue ?? directionsIssue ?? 'Chưa có keyword điểm bắt đầu cho chặng này'}</small>
+              </span>
+            </button>
+          )}
+        </div>
+      </section>
+    </dialog>
   );
 }
 
@@ -812,6 +951,7 @@ function App() {
   const [online, setOnline] = useState(() => navigator.onLine);
   const [clock, setClock] = useState(() => new Date());
   const [toast, setToast] = useState<string>();
+  const [mapItem, setMapItem] = useState<ItineraryItem>();
 
   useEffect(() => {
     const timer = window.setInterval(() => setClock(new Date()), 30_000);
@@ -898,6 +1038,7 @@ function App() {
             previewMinutes={previewMinutes}
             expandedId={expandedId}
             onExpand={toggleExpanded}
+            onDirections={setMapItem}
             onPreviewDay={(day) => {
               setPreviewDay(day);
               if (isPreviewing) setSelectedDay(day);
@@ -914,6 +1055,7 @@ function App() {
             effectiveNow={effectiveNow}
             expandedId={expandedId}
             onExpand={toggleExpanded}
+            onDirections={setMapItem}
             onPreviewItem={previewItem}
           />
         )}
@@ -924,11 +1066,12 @@ function App() {
             onDayChange={setSelectedDay}
             expandedId={expandedId}
             onExpand={toggleExpanded}
+            onDirections={setMapItem}
           />
         )}
       </main>
 
-      <QuickMap item={quickTarget} relation={quickRelation} />
+      <QuickMap item={quickTarget} relation={quickRelation} onDirections={setMapItem} />
       <BottomNav
         mode={mode}
         onChange={(nextMode) => {
@@ -936,6 +1079,8 @@ function App() {
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
       />
+
+      {mapItem && <MapChoiceDialog item={mapItem} onClose={() => setMapItem(undefined)} />}
 
       {toast && <div className="toast"><CircleDot size={15} /> {toast}</div>}
       <span className="sr-only">Dữ liệu đồng bộ lần cuối {SYNCED_LABEL}</span>
