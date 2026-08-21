@@ -726,7 +726,6 @@ export function getDirectionsUrl(
   const params = new URLSearchParams({
     api: "1",
     destination: route.destination,
-    dir_action: "navigate",
   });
 
   if (start === "plan") {
@@ -734,27 +733,33 @@ export function getDirectionsUrl(
     params.set("origin", plannedOrigin);
   }
 
-  if (route.waypoints.length > 0) {
-    params.set("waypoints", route.waypoints.join("|"));
-  }
-
   const routeText = `${item.mapSearch} ${item.title}`;
   const guidanceText = `${routeText} ${item.note}`;
   const hasPlannedTaxi = /(?:Ưu tiên|Di chuyển|Taxi(?:\s+search)?|Chặng[^.:]*?)\s*:\s*taxi|taxi\/Uber\s+thẳng|taxi\s+tới/i.test(
     item.mapSearch,
   );
+  let travelMode: "walking" | "driving" | "transit" | undefined;
   if (/International Airport Terminal\s+\d+\s*→\s*Airport Terminal\s+\d+\s+Station/i.test(routeText)) {
-    params.set("travelmode", "walking");
+    travelMode = "walking";
   } else if (hasPlannedTaxi) {
-    params.set("travelmode", "driving");
+    travelMode = "driving";
   } else if (
     !/Flight|bay/i.test(routeText) &&
     (item.categories.includes("Di chuyển") ||
       (Boolean(route.plannedOrigin) && /\b(?:MRT|bus|train|metro)\b/i.test(routeText)))
   ) {
-    params.set("travelmode", "transit");
+    travelMode = "transit";
   } else if (route.plannedOrigin && /(?:\bwalk(?:ing)?\b|đi bộ)/i.test(guidanceText)) {
-    params.set("travelmode", "walking");
+    travelMode = "walking";
+  }
+
+  if (travelMode) params.set("travelmode", travelMode);
+
+  if (travelMode !== "transit") {
+    params.set("dir_action", "navigate");
+    if (route.waypoints.length > 0) {
+      params.set("waypoints", route.waypoints.join("|"));
+    }
   }
 
   return `https://www.google.com/maps/dir/?${params.toString()}`;
