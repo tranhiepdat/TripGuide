@@ -63,13 +63,11 @@ for (const item of itinerary) {
   assert.equal(currentUrl.searchParams.get('destination'), destination);
   assert.equal(currentUrl.searchParams.has('origin'), false, `${item.title}: current route must omit origin`);
   assert.equal(currentUrl.searchParams.has('departure_time'), false, `${item.title}: Maps URLs do not support departure_time`);
+  assert.equal(currentUrl.searchParams.has('dir_action'), false, `${item.title}: route preview must not auto-start navigation`);
 
   const travelMode = currentUrl.searchParams.get('travelmode');
   if (travelMode === 'transit') {
     assert.equal(currentUrl.searchParams.has('waypoints'), false, `${item.title}: transit route must omit waypoints`);
-    assert.equal(currentUrl.searchParams.has('dir_action'), false, `${item.title}: transit route must show route options`);
-  } else {
-    assert.equal(currentUrl.searchParams.get('dir_action'), 'navigate', `${item.title}: non-transit route should navigate`);
   }
 
   if (plannedOrigin) {
@@ -77,11 +75,11 @@ for (const item of itinerary) {
     const planUrl = new URL(planHref);
     assert.equal(planUrl.searchParams.get('origin'), plannedOrigin, `${item.title}: plan origin mismatch`);
     assert.equal(planUrl.searchParams.has('departure_time'), false, `${item.title}: planned time stays in the UI, not the URL`);
+    assert.equal(planUrl.searchParams.has('dir_action'), false, `${item.title}: planned route must stay in preview mode`);
     const waypoints = planUrl.searchParams.get('waypoints')?.split('|') ?? [];
     assert.equal(waypoints.includes(plannedOrigin), false, `${item.title}: origin repeated as waypoint`);
     if (travelMode === 'transit') {
       assert.equal(planUrl.searchParams.has('waypoints'), false, `${item.title}: planned transit must stay one leg`);
-      assert.equal(planUrl.searchParams.has('dir_action'), false, `${item.title}: planned transit must show MRT/bus choices`);
     }
   } else {
     assert.equal(planHref, undefined, `${item.title}: ambiguous plan route must stay disabled`);
@@ -136,7 +134,7 @@ const multiStopTaxi = itinerary.find((item) => item.title.startsWith('Dadaocheng
 assert.ok(multiStopTaxi, 'Representative multi-stop taxi row is missing');
 const multiStopTaxiPlan = new URL(getDirectionsUrl(multiStopTaxi, 'plan'));
 assert.equal(multiStopTaxiPlan.searchParams.get('waypoints'), 'Dadaocheng Wharf');
-assert.equal(multiStopTaxiPlan.searchParams.get('dir_action'), 'navigate');
+assert.equal(multiStopTaxiPlan.searchParams.has('dir_action'), false);
 
 const airportWalk = itinerary.find((item) => item.title === 'Nhập cảnh + lấy hành lý');
 assert.ok(airportWalk, 'Representative in-airport walking row is missing');
