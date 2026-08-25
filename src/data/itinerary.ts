@@ -704,7 +704,7 @@ export function getPlannedOrigin(item: ItineraryItem): string | undefined {
   return getMapRoute(item).plannedOrigin;
 }
 
-/** Explains why a row cannot safely open turn-by-turn directions. */
+/** Explains why a row cannot safely open a route preview. */
 export function getDirectionsIssue(item: ItineraryItem): string | undefined {
   return getMapRoute(item).directionsIssue;
 }
@@ -755,11 +755,8 @@ export function getDirectionsUrl(
 
   if (travelMode) params.set("travelmode", travelMode);
 
-  if (travelMode !== "transit") {
-    params.set("dir_action", "navigate");
-    if (route.waypoints.length > 0) {
-      params.set("waypoints", route.waypoints.join("|"));
-    }
+  if (travelMode !== "transit" && route.waypoints.length > 0) {
+    params.set("waypoints", route.waypoints.join("|"));
   }
 
   return `https://www.google.com/maps/dir/?${params.toString()}`;
