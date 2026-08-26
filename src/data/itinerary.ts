@@ -27,7 +27,7 @@ export interface ItineraryItem {
 
 export type DirectionsStart = "current" | "plan";
 
-export const itineraryExportedAt = "2026-08-21T09:50:57.078Z";
+export const itineraryExportedAt = "2026-08-26T01:38:55.684Z";
 
 /** Snapshot of the 28 live rows in the Notion itinerary database, ordered by day and time. */
 // <notion-data>
@@ -46,7 +46,7 @@ export const itinerary = [
       "Di chuyển"
     ],
     "note": "07:50 có mặt SGN Terminal 2. Làm theo thứ tự: quầy China Airlines → check-in/gửi hành lý → xuất cảnh → tìm gate. Nếu chưa ăn sáng thì ăn sau khi check-in để khỏi vội.",
-    "mapSearch": "Google Maps: Tan Son Nhat International Airport – Terminal 2. Chuyến bay cần theo dõi: China Airlines CI782.",
+    "mapSearch": "Google Maps search: Tan Son Nhat International Airport - Terminal 2, Ho Chi Minh City, Vietnam. Flight reference: China Airlines CI782 (SGN → TPE).",
     "notionUrl": "https://app.notion.com/3c0e8e18611981ab9c6dd0a4857429cf"
   },
   {
@@ -63,7 +63,7 @@ export const itinerary = [
       "Di chuyển"
     ],
     "note": "Bay thẳng CI782, giờ dự kiến 10:50–15:20. Theo dõi gate trên bảng sân bay/app hãng; nên mang snack nhỏ và nước mua sau security để phòng đói.",
-    "mapSearch": "Flight search: CI782 SGN → TPE. Điểm đến trên Maps: Taiwan Taoyuan International Airport – Terminal 1.",
+    "mapSearch": "Google Maps search: Tan Son Nhat International Airport - Terminal 2, Ho Chi Minh City, Vietnam → Taiwan Taoyuan International Airport Terminal 1, Dayuan District, Taoyuan City, Taiwan. Flight: China Airlines CI782.",
     "notionUrl": "https://app.notion.com/3afe8e186119812c8b8ad60f55a0c19f"
   },
   {
@@ -80,7 +80,7 @@ export const itinerary = [
       "Di chuyển"
     ],
     "note": "Xuống máy bay → Immigration/nhập cảnh → lấy hành lý → xử lý EasyCard/eSIM/ATM nếu cần → đi theo bảng chỉ dẫn Airport MRT. Ga cần tới là A12 Terminal 1.",
-    "mapSearch": "Google Maps: Taiwan Taoyuan International Airport Terminal 1 → Airport Terminal 1 Station (A12). Từ khóa: Taoyuan Airport MRT A12.",
+    "mapSearch": "Google Maps search: Taiwan Taoyuan International Airport Terminal 1, Dayuan District, Taoyuan City, Taiwan → A12 Airport Terminal 1 Station, Taoyuan Airport MRT, Dayuan District, Taoyuan City, Taiwan.",
     "notionUrl": "https://app.notion.com/3afe8e18611981cea0a6c6d6f65af9fc"
   },
   {
@@ -96,8 +96,8 @@ export const itinerary = [
     "categories": [
       "Di chuyển"
     ],
-    "note": "Tại A12, lên Taoyuan Airport MRT Express đi thẳng tới A1 Taipei Main Station, không đổi tàu. Xuống A1 xong bắt taxi/Uber ngắn tới Muzik Hotel ở Ximending để đỡ kéo vali.",
-    "mapSearch": "Google Maps: Airport Terminal 1 Station (A12) → Taipei Main Station (A1) → Muzik Hotel Ximen Station Branch. Tàu: Taoyuan Airport MRT Express A12 → A1.",
+    "note": "Tại Taoyuan International Airport Terminal 1 Station (A12), lên Taoyuan Airport MRT Express đi thẳng tới Taipei Main Station (A1), không đổi tàu. Xuống A1 bắt taxi/Uber ngắn tới Muzik Hotel - Ximen Station Branch ở Ximending để đỡ kéo vali.",
+    "mapSearch": "Google Maps search: A12 Airport Terminal 1 Station, Taoyuan Airport MRT, Dayuan District, Taoyuan City, Taiwan → A1 Taipei Main Station, Taoyuan Airport MRT, Taipei City, Taiwan → Muzik Hotel - Ximen Station Branch, Wanhua District, Taipei City, Taiwan. Transit: Taoyuan Airport MRT Express A12 → A1; then taxi/Uber to hotel.",
     "notionUrl": "https://app.notion.com/3afe8e18611981f4bb0dd49f0a4d461a"
   },
   {
@@ -113,60 +113,60 @@ export const itinerary = [
     "categories": [
       "Nghỉ"
     ],
-    "note": "Check-in nhanh, để hành lý và chỉ mang daily bag. Mục tiêu rời hotel khoảng 18:15 để không trễ Syntrend/Guanghua.",
-    "mapSearch": "Google Maps: Muzik Hotel Ximen Station Branch.",
+    "note": "Check-in nhanh, để hành lý và chỉ mang daily bag. Mục tiêu rời hotel khoảng 18:15 để đi thẳng Taipei 101 trước; không ghé Syntrend lúc này.",
+    "mapSearch": "Google Maps search: Muzik Hotel - Ximen Station Branch, Wanhua District, Taipei City, Taiwan.",
     "notionUrl": "https://app.notion.com/3afe8e18611981529f00f31b95762d7d"
-  },
-  {
-    "id": "3afe8e18-6119-81bc-a163-c6aec473b4ba",
-    "dayNumber": 1,
-    "date": "2026-08-30",
-    "dayLabel": "Ngày 1 · CN 30/8",
-    "start": "18:30",
-    "end": "19:20",
-    "timeLabel": "18:30–19:20",
-    "title": "Syntrend Creative Park + Guanghua Digital Plaza",
-    "area": "Zhongxiao Xinsheng",
-    "categories": [
-      "Tech",
-      "Mua sắm"
-    ],
-    "note": "Từ Ximen Station đi Blue/Bannan Line thẳng tới Zhongxiao Xinsheng, không đổi tuyến. Xuống ga rồi đi bộ tới Syntrend; Guanghua nằm ngay khu bên cạnh. Chỉ browse nhanh vì 19:20 phải rời đi Taipei 101.",
-    "mapSearch": "Google Maps: Ximen Station → Zhongxiao Xinsheng Station → Syntrend Creative Park → Guang Hua Digital Plaza. MRT: Blue Line, Ximen → Zhongxiao Xinsheng.",
-    "notionUrl": "https://app.notion.com/3afe8e18611981bca163c6aec473b4ba"
   },
   {
     "id": "3afe8e18-6119-8150-8454-ebc23d81cde6",
     "dayNumber": 1,
     "date": "2026-08-30",
     "dayLabel": "Ngày 1 · CN 30/8",
-    "start": "19:45",
-    "end": "21:00",
-    "timeLabel": "19:45–21:00",
+    "start": "18:40",
+    "end": "19:50",
+    "timeLabel": "18:40–19:50",
     "title": "Taipei 101 Observatory",
     "area": "Xinyi",
     "categories": [
       "Tham quan"
     ],
-    "note": "Từ Zhongxiao Xinsheng đi Orange Line tới Dongmen → đổi sang Red Line hướng Xiangshan → xuống Taipei 101/World Trade Center. Vào Observatory và giữ giờ ra khoảng 21:00 để kịp đi ăn tối.",
-    "mapSearch": "Google Maps: Zhongxiao Xinsheng Station → Dongmen Station → Taipei 101/World Trade Center Station → Taipei 101 Observatory. MRT: Orange Line → đổi Red Line tại Dongmen.",
+    "note": "Rời Muzik Hotel khoảng 18:15. Từ Ximen Station đi Green Line tới Chiang Kai-Shek Memorial Hall → đổi Red Line hướng Xiangshan → xuống Taipei 101/World Trade Center. Ưu tiên lên Observatory trước để ngắm cảnh sớm hơn; khoảng 19:50 rời 101 để qua khu Syntrend/Guanghua.",
+    "mapSearch": "Google Maps search: Muzik Hotel - Ximen Station Branch, Wanhua District, Taipei City, Taiwan → Ximen Station, Wanhua District, Taipei City, Taiwan → Chiang Kai-Shek Memorial Hall Station, Zhongzheng District, Taipei City, Taiwan → Taipei 101/World Trade Center Station, Xinyi District, Taipei City, Taiwan → Taipei 101 Observatory, Xinyi District, Taipei City, Taiwan. Transit: Taipei MRT Green Line Ximen → Chiang Kai-Shek Memorial Hall; transfer to Red Line toward Xiangshan → Taipei 101/World Trade Center.",
     "notionUrl": "https://app.notion.com/3afe8e18611981508454ebc23d81cde6"
+  },
+  {
+    "id": "3afe8e18-6119-81bc-a163-c6aec473b4ba",
+    "dayNumber": 1,
+    "date": "2026-08-30",
+    "dayLabel": "Ngày 1 · CN 30/8",
+    "start": "20:15",
+    "end": "21:15",
+    "timeLabel": "20:15–21:15",
+    "title": "Syntrend Creative Park + Guanghua Digital Plaza",
+    "area": "Zhongxiao Xinsheng",
+    "categories": [
+      "Tech",
+      "Mua sắm"
+    ],
+    "note": "Từ Taipei 101/World Trade Center Station đi Red Line tới Dongmen → đổi Orange Line tới Zhongxiao Xinsheng → Exit 1, đi bộ khoảng 5 phút tới khu Syntrend/Guanghua. Vì Guanghua thường đóng sớm hơn Syntrend, ưu tiên ghé Guang Hua Digital Plaza trước, sau đó qua Syntrend; rời khu này khoảng 21:15 để đi ăn tối.",
+    "mapSearch": "Google Maps search: Taipei 101 Observatory, Xinyi District, Taipei City, Taiwan → Taipei 101/World Trade Center Station, Xinyi District, Taipei City, Taiwan → Dongmen Station, Da'an District, Taipei City, Taiwan → Zhongxiao Xinsheng Station, Zhongzheng District, Taipei City, Taiwan → Guang Hua Digital Plaza, No. 8 Section 3 Civic Boulevard, Zhongzheng District, Taipei City, Taiwan → Syntrend Creative Park, No. 2 Section 3 Civic Boulevard, Zhongzheng District, Taipei City, Taiwan. Transit: Red Line Taipei 101/World Trade Center → Dongmen; transfer to Orange Line → Zhongxiao Xinsheng Exit 1; walk about 5 minutes.",
+    "notionUrl": "https://app.notion.com/3afe8e18611981bca163c6aec473b4ba"
   },
   {
     "id": "3afe8e18-6119-81b7-a09b-e0e7f62b2873",
     "dayNumber": 1,
     "date": "2026-08-30",
     "dayLabel": "Ngày 1 · CN 30/8",
-    "start": "21:15",
+    "start": "21:30",
     "end": "22:45",
-    "timeLabel": "21:15–22:45",
+    "timeLabel": "21:30–22:45",
     "title": "Linjiang / Tonghua Night Market · ăn tối",
     "area": "Linjiang Street",
     "categories": [
       "Ăn uống"
     ],
-    "note": "Từ Taipei 101 đi bộ khoảng 15–20 phút hoặc taxi ngắn tới Linjiang/Tonghua Night Market. Đây là bữa tối chính ngày 1. Ăn xong: đi tới Xinyi Anhe Station → Red Line tới Chiang Kai-Shek Memorial Hall → đổi Green Line → Ximen.",
-    "mapSearch": "Google Maps: Taipei 101 Observatory → Linjiang Street Night Market. Về hotel: Xinyi Anhe Station → Chiang Kai-Shek Memorial Hall → Ximen Station.",
+    "note": "Rời Syntrend/Guanghua khoảng 21:15. Đi taxi/Uber là gọn nhất tới Linjiang Street Night Market; nếu đi MRT: Zhongxiao Xinsheng → Dongmen → Xinyi Anhe rồi đi bộ. Đây là bữa tối chính ngày 1. Ăn xong về Ximen bằng MRT hoặc taxi tùy lúc đó còn sức.",
+    "mapSearch": "Google Maps search: Syntrend Creative Park, No. 2 Section 3 Civic Boulevard, Zhongzheng District, Taipei City, Taiwan → Linjiang Street Night Market, Da'an District, Taipei City, Taiwan. MRT option: Zhongxiao Xinsheng Station, Zhongzheng District, Taipei City, Taiwan → Dongmen Station, Da'an District, Taipei City, Taiwan → Xinyi Anhe Station, Da'an District, Taipei City, Taiwan → Linjiang Street Night Market, Da'an District, Taipei City, Taiwan. Return search: Linjiang Street Night Market, Da'an District, Taipei City, Taiwan → Muzik Hotel - Ximen Station Branch, Wanhua District, Taipei City, Taiwan.",
     "notionUrl": "https://app.notion.com/3afe8e18611981b7a09be0e7f62b2873"
   },
   {
@@ -183,7 +183,7 @@ export const itinerary = [
       "Di chuyển"
     ],
     "note": "Trước khi đi: ăn sáng ở Ximen khoảng 06:30–07:00, mang theo 1 snack + nước vì trên núi không nên trông chờ đồ ăn đúng lúc. Sau đó đi bộ tới điểm bus Zhonghua Road North → bắt bus 260 lên Yangmingshan Bus Terminal → xuống bến cuối/terminal → đổi bus 108 → xuống Xiaoyoukeng.",
-    "mapSearch": "Google Maps: Ximen → Yangmingshan Bus Terminal → Xiaoyoukeng Recreation Area. Cách đi: bus 260 → xuống Yangmingshan Bus Terminal → đổi bus 108 → xuống Xiaoyoukeng.",
+    "mapSearch": "Google Maps search: Muzik Hotel - Ximen Station Branch, Wanhua District, Taipei City, Taiwan → Ximen Station, Wanhua District, Taipei City, Taiwan → Yangmingshan Bus Terminal, Beitou District, Taipei City, Taiwan → Xiaoyoukeng Recreation Area, Yangmingshan National Park, Beitou District, Taipei City, Taiwan. Transit: bus 260 → Yangmingshan Bus Terminal; bus 108 → Xiaoyoukeng Service Center.",
     "notionUrl": "https://app.notion.com/3afe8e18611981f4a6f5d9547fd7ce0c"
   },
   {
@@ -200,7 +200,7 @@ export const itinerary = [
       "Tham quan"
     ],
     "note": "Ở Xiaoyoukeng khoảng 30–40 phút là đủ: xem fumarole/địa nhiệt, chụp hình rồi quay lại trạm bus. Trước khi đi bộ xa khỏi trạm, nhìn giờ bus 108 kế tiếp để khỏi chờ lâu. Sau đó bắt 108 tiếp tục tới Qingtiangang.",
-    "mapSearch": "Google Maps: Xiaoyoukeng Recreation Area. Chặng kế: bus 108, Xiaoyoukeng → Qingtiangang.",
+    "mapSearch": "Google Maps search: Xiaoyoukeng Recreation Area, Yangmingshan National Park, Beitou District, Taipei City, Taiwan. Next transit search: Xiaoyoukeng Service Center, Yangmingshan National Park, Taipei City, Taiwan → Qingtiangang, Yangmingshan National Park, Taipei City, Taiwan. Bus: 108.",
     "notionUrl": "https://app.notion.com/3afe8e18611981c5ad30f8465b222982"
   },
   {
@@ -217,7 +217,7 @@ export const itinerary = [
       "Tham quan"
     ],
     "note": "Bus 108 sẽ đưa tới Qingtiangang. Dành phần lớn thời gian ở đồng cỏ + viewpoint gần visitor center. Khoảng 11:45 bắt đầu quay về khu bus stop để 12:00 có thể rời đi; đừng đợi sát giờ mới xếp hàng.",
-    "mapSearch": "Google Maps: Qingtiangang Grassland / 擎天崗. Khi rời đi: tìm Qingtiangang Bus Stop và tuyến S15 về Shilin.",
+    "mapSearch": "Google Maps search: Qingtiangang Grassland (擎天崗草原), Yangmingshan National Park, Shilin District, Taipei City, Taiwan. Exit transit search: Qingtiangang bus stop, Shilin District, Taipei City, Taiwan → Shilin Station, Shilin District, Taipei City, Taiwan. Bus: S15.",
     "notionUrl": "https://app.notion.com/3afe8e186119811ca7b4e3dd961eb964"
   },
   {
@@ -234,7 +234,7 @@ export const itinerary = [
       "Di chuyển"
     ],
     "note": "Từ Qingtiangang bắt bus S15 về MRT Shilin Station → vào Red Line → đi thẳng tới Beitou Station, không cần đổi tuyến MRT. Nếu bus núi trễ thì ưu tiên giữ giờ Gaia, có thể rút ngắn bữa trưa một chút.",
-    "mapSearch": "Google Maps: Qingtiangang Bus Stop → Shilin Station → Beitou Station. Cách đi: bus S15 → Shilin; sau đó Red Line Shilin → Beitou.",
+    "mapSearch": "Google Maps search: Qingtiangang Grassland (擎天崗草原), Shilin District, Taipei City, Taiwan → Shilin Station, Shilin District, Taipei City, Taiwan → Beitou Station, Beitou District, Taipei City, Taiwan. Transit: bus S15 to Shilin; Taipei MRT Red Line Shilin → Beitou.",
     "notionUrl": "https://app.notion.com/3afe8e1861198174a009ffe7014c30d0"
   },
   {
@@ -252,7 +252,7 @@ export const itinerary = [
       "Di chuyển"
     ],
     "note": "13:30–14:20 ăn trưa ở Wu Jia Beef Noodles. Ăn xong khoảng 14:20 gọi taxi/Uber tới The Gaia Hotel; chặng này ngắn nên taxi tiện hơn MRT. Aim tới Gaia trước 14:35 để có thời gian thay đồ.",
-    "mapSearch": "Google Maps: Wu Jia Beef Noodles Beitou → The Gaia Hotel Taipei. Di chuyển: taxi/Uber thẳng tới Gaia.",
+    "mapSearch": "Google Maps search: Wu Jia Beef Noodles (吳家牛肉麵店), No. 224, Sec. 1, Zhongyang N. Rd., Beitou District, Taipei City, Taiwan → The Gaia Hotel, No. 1, Qiyan Rd., Beitou District, Taipei City, Taiwan. Transit: taxi/Uber.",
     "notionUrl": "https://app.notion.com/3afe8e18611981f6bedec00c751f76ff"
   },
   {
@@ -269,7 +269,7 @@ export const itinerary = [
       "Nghỉ"
     ],
     "note": "Public hot spring nam/nữ riêng. Tới nơi thay đồ, tắm trước rồi mới vào khu ngâm. Cố gắng kết thúc ngâm khoảng 16:15 để còn tắm lại/thay đồ và rời Gaia khoảng 16:30.",
-    "mapSearch": "Google Maps: The Gaia Hotel Taipei. Khi gần 16:30 có thể nhờ lễ tân gọi taxi hoặc mở Uber.",
+    "mapSearch": "Google Maps search: The Gaia Hotel, No. 1, Qiyan Rd., Beitou District, Taipei City, Taiwan.",
     "notionUrl": "https://app.notion.com/3afe8e18611981da9390ce948bc68e13"
   },
   {
@@ -287,7 +287,7 @@ export const itinerary = [
       "Ăn uống"
     ],
     "note": "16:30 rời Gaia → ưu tiên taxi/Uber đi thẳng Dadaocheng Wharf để đỡ đổi MRT. Aim tới khoảng 17:10–17:30, đi dạo/ngắm golden hour; sunset khoảng 18:14. Sau đó đi bộ/taxi ngắn sang Ningxia Night Market và ăn tối khoảng 18:50–20:45.",
-    "mapSearch": "Google Maps: The Gaia Hotel Taipei → Dadaocheng Wharf → Ningxia Night Market. Chặng Gaia → Dadaocheng: taxi/Uber thẳng là dễ nhất.",
+    "mapSearch": "Google Maps search: The Gaia Hotel, No. 1, Qiyan Rd., Beitou District, Taipei City, Taiwan → Dadaocheng Wharf (大稻埕碼頭), Datong District, Taipei City, Taiwan → Ningxia Night Market, Datong District, Taipei City, Taiwan. Transit: taxi/Uber Gaia → Dadaocheng Wharf.",
     "notionUrl": "https://app.notion.com/3afe8e186119819d8512fb41d3f7dd4d"
   },
   {
@@ -305,7 +305,7 @@ export const itinerary = [
       "Di chuyển"
     ],
     "note": "05:30 dậy và chuẩn bị. Khoảng 06:05–06:10 rời Ximen; sáng này ưu tiên taxi/Uber tới Holy Family để chắc giờ, aim tới 06:30–06:35. Nếu đi MRT: Ximen → Chiang Kai-Shek Memorial Hall → đổi Red Line → Daan Park, rồi đi bộ tới nhà thờ.",
-    "mapSearch": "Google Maps: Muzik Hotel Ximen Station Branch → Holy Family Catholic Church Taipei / 台北聖家堂. Ưu tiên: taxi/Uber. MRT dự phòng: Ximen → Chiang Kai-Shek Memorial Hall → Daan Park.",
+    "mapSearch": "Google Maps search: Muzik Hotel - Ximen Station Branch, Wanhua District, Taipei City, Taiwan → Holy Family Catholic Church, Taipei (台北聖家堂), No. 50, Sec. 2, Xinsheng S. Rd., Da'an District, Taipei City, Taiwan. Transit: taxi/Uber recommended; MRT backup via Ximen Station → Chiang Kai-Shek Memorial Hall Station → Daan Park Station.",
     "notionUrl": "https://app.notion.com/3afe8e186119813b8ad5e02be96f502c"
   },
   {
@@ -322,7 +322,7 @@ export const itinerary = [
       "Tham quan"
     ],
     "note": "Dự weekday Mass 06:45–07:15. Theo lịch hiện tại đây không phải English Mass, nhiều khả năng dùng tiếng Hoa/Mandarin. Tới sớm 10–15 phút, ngồi yên tham dự lễ; sau lễ ra ngoài mới chuyển sang điểm tiếp theo.",
-    "mapSearch": "Google Maps: Holy Family Catholic Church Taipei / 台北聖家堂. Không cần search transit thêm trong slot này.",
+    "mapSearch": "Google Maps search: Holy Family Catholic Church, Taipei (台北聖家堂), No. 50, Sec. 2, Xinsheng S. Rd., Da'an District, Taipei City, Taiwan.",
     "notionUrl": "https://app.notion.com/3afe8e18611981ea96f1c1cec87fe4ed"
   },
   {
@@ -340,7 +340,7 @@ export const itinerary = [
       "Di chuyển"
     ],
     "note": "Sau lễ chỉ chọn 1 điểm để khỏi chạy: Daan Forest Park nếu muốn cây xanh/đi bộ, hoặc Qingtian Street nếu muốn phố yên + kiến trúc đẹp. Đi khoảng 20–25 phút rồi rời khu Da’an. Sau đó ưu tiên taxi/Uber tới Longshan để tiết kiệm đổi MRT.",
-    "mapSearch": "Google Maps: Holy Family Catholic Church → Daan Forest Park HOẶC Qingtian Street → Lungshan Temple. Chặng Da’an → Longshan: taxi/Uber là dễ nhất.",
+    "mapSearch": "Google Maps search: Holy Family Catholic Church, Taipei, Da'an District, Taipei City, Taiwan → Daan Forest Park, Da'an District, Taipei City, Taiwan. Alternative waypoint: Qingtian Street, Da'an District, Taipei City, Taiwan. Destination: Bangka Lungshan Temple (艋舺龍山寺), Wanhua District, Taipei City, Taiwan.",
     "notionUrl": "https://app.notion.com/3afe8e18611981c997dcff6c61c89029"
   },
   {
@@ -358,7 +358,7 @@ export const itinerary = [
       "Ăn uống"
     ],
     "note": "Tới Longshan khoảng 08:10. Tham quan temple trước rồi ăn sáng quanh Wanhua/Dongsanshui Street Market; sau đó đi bộ chụp phố cũ gần đó. Không cần ép ghé Bopiliao nếu không hứng thú. Aim rời khu khoảng 09:30.",
-    "mapSearch": "Google Maps: Lungshan Temple / 龍山寺 → Dongsanshui Street Market / 東三水街市場. Từ khóa ăn sáng: breakfast near Longshan Temple / Wanhua breakfast.",
+    "mapSearch": "Google Maps search: Bangka Lungshan Temple (艋舺龍山寺), Wanhua District, Taipei City, Taiwan. Nearby area keyword for breakfast/street photos: Wanhua District, Taipei City, Taiwan.",
     "notionUrl": "https://app.notion.com/3afe8e186119816bbb95f3fe8e6d5cbe"
   },
   {
@@ -376,7 +376,7 @@ export const itinerary = [
       "Nghỉ"
     ],
     "note": "Từ Longshan Temple Station lên Blue/Bannan Line đi thẳng 2 stops tới Taipei Main Station, không đổi tuyến. Tới sớm thì nghỉ/cafe gần ga; đây là buffer trước khi Taipei City Mall mở 11:00.",
-    "mapSearch": "Google Maps: Longshan Temple Station → Taipei Main Station. MRT: Blue Line, Longshan Temple → Ximen → Taipei Main, không đổi tuyến.",
+    "mapSearch": "Google Maps search: Bangka Lungshan Temple (艋舺龍山寺), Wanhua District, Taipei City, Taiwan → Taipei Main Station, Zhongzheng District, Taipei City, Taiwan.",
     "notionUrl": "https://app.notion.com/3afe8e186119811ba795f1468c091fa7"
   },
   {
@@ -394,7 +394,7 @@ export const itinerary = [
       "Tech"
     ],
     "note": "11:00 vào Taipei City Mall, ưu tiên khu game/figure/gashapon/gadget. Khoảng 11:50–12:00 bắt đầu để ý giờ và search chỗ ăn. Ưu tiên 大稻埕魯肉飯 (Dadaocheng Braised Pork Rice) gần khu Taipei Main/Y Underground Mall; nếu đông thì chọn quán nhanh gần City Mall.",
-    "mapSearch": "Google Maps: Taipei City Mall / 台北地下街. Tìm quán ăn: 大稻埕魯肉飯 / Dadaocheng Braised Pork Rice. Từ khóa khu mall: Y Underground Mall Taipei Main Station.",
+    "mapSearch": "Google Maps search: Taipei City Mall (台北地下街), B1, No. 100, Section 1, Shimin Blvd., Zhongzheng District, Taipei City, Taiwan.",
     "notionUrl": "https://app.notion.com/3afe8e186119816d8956e03cda25a34d"
   },
   {
@@ -412,7 +412,7 @@ export const itinerary = [
       "Di chuyển"
     ],
     "note": "12:10 rời City Mall và ăn trưa nhanh. Ưu tiên 大稻埕魯肉飯 nếu vị trí meeting point tour thuận tiện; ăn xong đi toilet, mua nước/snack rồi đi tới điểm đón. Aim có mặt 12:45–12:50, không canh sát 13:15.",
-    "mapSearch": "Google Maps: Taipei City Mall → 大稻埕魯肉飯 → TOUR MEETING POINT (TBD). Khi có voucher tour, thay TBD bằng đúng tên/address trên voucher.",
+    "mapSearch": "Google Maps search: Taipei City Mall (台北地下街), Zhongzheng District, Taipei City, Taiwan → Dadaocheng Braised Pork Rice (大稻埕魯肉飯), No. 17, Lane 220, Chang'an W. Rd., Datong District, Taipei City, Taiwan → Taipei Main Station East Gate 3 (台北車站東三門), Zhongzheng District, Taipei City, Taiwan. Tour meeting keyword: FamilyMart near Taipei Main Station East Gate 3.",
     "notionUrl": "https://app.notion.com/3c3e8e18611981079da6fcaee4e89d05"
   },
   {
@@ -430,7 +430,7 @@ export const itinerary = [
       "Di chuyển"
     ],
     "note": "Tour dự kiến pickup 13:15. Ưu tiên route Shifen/Waterfall trước khi còn sáng → Jiufen sau để bắt golden hour + đèn lồng. Dự kiến về Taipei khoảng 20:30. Giờ pickup, meeting point và drop-off vẫn để TBD cho tới khi có link/voucher tour thật; lúc đó update lại theo voucher.",
-    "mapSearch": "Google Maps để nhận diện điểm: Shifen Old Street / 十分老街; Shifen Waterfall / 十分瀑布; Jiufen Old Street / 九份老街. Di chuyển trong tour: theo xe và meeting point trên voucher; chưa cần tự search tàu/bus.",
+    "mapSearch": "Google Maps search: Taipei Main Station East Gate 3 (台北車站東三門), Zhongzheng District, Taipei City, Taiwan → Shifen Old Street, Pingxi District, New Taipei City, Taiwan → Shifen Waterfall, Pingxi District, New Taipei City, Taiwan → Jiufen Old Street, Ruifang District, New Taipei City, Taiwan → Taipei Main Station, Zhongzheng District, Taipei City, Taiwan. Transit: booked tour bus.",
     "notionUrl": "https://app.notion.com/3c3e8e1861198132a7d2d922d1626899"
   },
   {
@@ -447,7 +447,7 @@ export const itinerary = [
       "Ăn uống"
     ],
     "note": "Nếu tour về Taipei khoảng 20:30 và còn sức thì đi Raohe ăn tối/ăn đêm khoảng 21:00–22:30. Nếu drop-off ở Ximen thì đi Green Line thẳng tới Songshan; nếu drop-off ở chỗ khác thì mở Google Maps từ đúng điểm thả tour. Nếu quá mệt thì bỏ Raohe, không ảnh hưởng phần chính của ngày.",
-    "mapSearch": "Google Maps: Raohe Street Night Market / 饒河街觀光夜市. Nếu xuất phát Ximen: Green Line Ximen → Songshan, không đổi tuyến. Nếu tour thả chỗ khác: search route từ điểm drop-off thực tế.",
+    "mapSearch": "Google Maps search: Taipei Main Station, Zhongzheng District, Taipei City, Taiwan → Raohe Night Market, Songshan District, Taipei City, Taiwan → Muzik Hotel - Ximen Station Branch, Wanhua District, Taipei City, Taiwan.",
     "notionUrl": "https://app.notion.com/3afe8e1861198111a0aac162e641a912"
   },
   {
@@ -465,7 +465,7 @@ export const itinerary = [
       "Nghỉ"
     ],
     "note": "07:30 ăn sáng gần hotel → về kiểm tra passport, ví/thẻ, điện thoại, sạc, đồ mua và cân lại hành lý nếu cần → checkout. Aim rời hotel đúng 09:15; đừng kéo bữa sáng quá lâu.",
-    "mapSearch": "Google Maps: Muzik Hotel Ximen Station Branch. Tìm ăn sáng: breakfast near Ximen Station / Ximending breakfast.",
+    "mapSearch": "Google Maps search: Muzik Hotel - Ximen Station Branch, Wanhua District, Taipei City, Taiwan. Nearby area keyword: Ximending, Wanhua District, Taipei City, Taiwan.",
     "notionUrl": "https://app.notion.com/3afe8e186119810383d5d8d05279a3a9"
   },
   {
@@ -482,7 +482,7 @@ export const itinerary = [
       "Di chuyển"
     ],
     "note": "Từ Ximen đi Green Line 1 stop tới Beimen → đi bộ theo bảng chỉ dẫn tới Taoyuan Airport MRT A1 Taipei Main Station → lên Express A1 đi thẳng A12 Terminal 1. Nếu vali nặng hoặc ngại đi underground, có thể taxi từ hotel thẳng A1 rồi đi Airport MRT.",
-    "mapSearch": "Google Maps: Ximen Station → Beimen Station → Taipei Main Station A1 → Airport Terminal 1 Station A12. MRT: Green Line Ximen → Beimen; sau đó Airport MRT Express A1 → A12.",
+    "mapSearch": "Google Maps search: Muzik Hotel - Ximen Station Branch, Wanhua District, Taipei City, Taiwan → A1 Taipei Main Station, Taoyuan Airport MRT, Taipei City, Taiwan → A12 Airport Terminal 1 Station, Taoyuan Airport MRT, Dayuan District, Taoyuan City, Taiwan → Taiwan Taoyuan International Airport Terminal 1, Dayuan District, Taoyuan City, Taiwan. Transit: Taoyuan Airport MRT Express A1 → A12.",
     "notionUrl": "https://app.notion.com/3afe8e18611981e8bc1cebd65ab00230"
   },
   {
@@ -499,7 +499,7 @@ export const itinerary = [
       "Di chuyển"
     ],
     "note": "Tới TPE Terminal 1 khoảng 10:45. Làm theo thứ tự: tìm quầy China Airlines → check-in/gửi hành lý → security → exit immigration → tìm gate. Sau khi qua security có thể ăn nhẹ/lunch khoảng 11:30–12:15 rồi ra gate sớm.",
-    "mapSearch": "Google Maps: Taiwan Taoyuan International Airport Terminal 1. Flight cần theo dõi: China Airlines CI783. Trong sân bay: theo bảng Departures → China Airlines → Security → Immigration → Gate.",
+    "mapSearch": "Google Maps search: Taiwan Taoyuan International Airport Terminal 1, Dayuan District, Taoyuan City, Taiwan. Flight reference: China Airlines CI783 (TPE → SGN).",
     "notionUrl": "https://app.notion.com/3afe8e18611981fcbe34f6d32dd11ec8"
   },
   {
@@ -516,18 +516,30 @@ export const itinerary = [
       "Di chuyển"
     ],
     "note": "CI783 bay 13:45–16:20 về SGN. Có mặt ở gate trước boarding; giữ passport + boarding pass trong túi dễ lấy. Hạ cánh SGN Terminal 2 rồi làm nhập cảnh/lấy hành lý như bình thường.",
-    "mapSearch": "Flight search: CI783 TPE → SGN. Điểm đến: Tan Son Nhat International Airport – Terminal 2.",
+    "mapSearch": "Google Maps search: Taiwan Taoyuan International Airport Terminal 1, Dayuan District, Taoyuan City, Taiwan → Tan Son Nhat International Airport - Terminal 2, Ho Chi Minh City, Vietnam. Flight: China Airlines CI783 (TPE → SGN).",
     "notionUrl": "https://app.notion.com/3afe8e18611981028749d790db828c3e"
   }
 ] as const satisfies readonly ItineraryItem[];
 // </notion-data>
 
+const clauseBoundary =
+  /\s*(?:\|\s*|\.\s+)(?=(?:Flight(?:\s+reference)?|Transit|Nearby\s+area\s+keyword(?:\s+for\s+[^:]+)?|Next\s+transit\s+search|Exit\s+transit\s+search|Alternative\s+waypoint|Destination|Tour\s+meeting\s+keyword|MRT\s+option|Return\s+search|Bus|MRT|Walk\s+route|Taxi\s+search|Di\s+chuyển)\s*:)/i;
+
+function getLabeledClause(text: string, label: RegExp): string | undefined {
+  const flags = label.flags.replace('g', '');
+  const match = new RegExp(`(?:^|\\|\\s*|\\.\\s+)(?:${label.source})\\s*:\\s*`, flags).exec(text);
+  if (!match) return undefined;
+
+  const remainder = text.slice(match.index + match[0].length);
+  const boundaryIndex = remainder.search(clauseBoundary);
+  return cleanStop(boundaryIndex < 0 ? remainder : remainder.slice(0, boundaryIndex));
+}
+
 function getMapsPart(item: ItineraryItem): string | undefined {
-  return item.mapSearch
-    .match(
-      /(?:^|[|.!?]\s*)(?:(?:Google\s+)?Maps(?:\s+arrival|\s+để nhận diện điểm)?|Điểm đến(?:\s+trên\s+Maps)?)\s*:\s*([^|.!?]+)/i,
-    )?.[1]
-    ?.trim();
+  return getLabeledClause(
+    item.mapSearch,
+    /(?:(?:Google\s+)?Maps(?:\s+search|\s+arrival|\s+để nhận diện điểm)?|Flight\s+search|Điểm đến(?:\s+trên\s+Maps)?)/i,
+  );
 }
 
 type MapRoute = {
@@ -617,10 +629,39 @@ function getMapRoute(item: ItineraryItem): MapRoute {
     .split(/\s*(?:→|;)\s*/)
     .map(cleanStop)
     .filter(Boolean);
+  const explicitDestination = getLabeledClause(item.mapSearch, /Destination/i);
+  const alternativeWaypoint = getLabeledClause(item.mapSearch, /Alternative\s+waypoint/i);
   const finalStop = item.mapSearch.match(/\|\s*Then\s*:\s*([^|]+)/i)?.[1];
 
-  if (finalStop && mapStops.at(-1) !== cleanStop(finalStop)) {
-    mapStops.push(cleanStop(finalStop));
+  for (const appendedStop of [explicitDestination, finalStop && cleanStop(finalStop)]) {
+    if (appendedStop && !mapStops.some((stop) => isSameStop(stop, appendedStop))) {
+      mapStops.push(appendedStop);
+    }
+  }
+
+  // A few activities include the return leg in the same Maps clause. When the activity
+  // clearly names a preceding POI, keep that POI as the destination instead of the return.
+  const lastStop = mapStops.at(-1);
+  const hasReturnDestination =
+    Boolean(
+      lastStop &&
+        /\b(?:hotel|hostel|accommodation)\b/i.test(lastStop) &&
+        !/\b(?:hotel|check-in|checkout|Ximen(?:ding)?)\b/i.test(item.title),
+    ) ||
+    (/\b(?:booked\s+)?tour\s+bus\b/i.test(item.mapSearch) && Boolean(lastStop && /Taipei\s+Main/i.test(lastStop)));
+  if (lastStop && hasReturnDestination) {
+    const titleWords = [...item.title.toLocaleLowerCase().matchAll(/[\p{L}\p{N}]{4,}/gu)].map((match) => match[0]);
+    const finalMatchesTitle = titleWords.some((word) => lastStop.toLocaleLowerCase().includes(word));
+    let matchingIndex = -1;
+    if (!finalMatchesTitle) {
+      for (let index = mapStops.length - 2; index >= 0; index -= 1) {
+        if (titleWords.some((word) => mapStops[index].toLocaleLowerCase().includes(word))) {
+          matchingIndex = index;
+          break;
+        }
+      }
+    }
+    if (matchingIndex >= 0) mapStops.splice(matchingIndex + 1);
   }
 
   const destination = mapStops.at(-1) ?? fallbackDestination;
@@ -635,7 +676,19 @@ function getMapRoute(item: ItineraryItem): MapRoute {
     };
   }
 
-  if (/(?:tour transport|di chuyển trong tour)[^.|]*(?:voucher|theo xe|follow)/i.test(item.mapSearch)) {
+  if (/^Bay\b/i.test(item.title)) {
+    return {
+      destination,
+      searchDestination,
+      waypoints: [],
+      directionsIssue: "Chặng bay không dùng Google Maps — hãy mở điểm đến sân bay",
+    };
+  }
+
+  if (
+    /(?:tour transport|di chuyển trong tour)[^.|]*(?:voucher|theo xe|follow)/i.test(item.mapSearch) ||
+    (/\b(?:booked\s+)?tour\s+bus\b/i.test(item.mapSearch) && /voucher|tour/i.test(`${item.title} ${item.note}`))
+  ) {
     return {
       destination,
       searchDestination,
@@ -664,14 +717,12 @@ function getMapRoute(item: ItineraryItem): MapRoute {
     };
   }
 
-  const hasAmbiguousWaypoint = plannedStops.slice(1, -1).some(isAmbiguousWaypoint);
+  const hasAmbiguousWaypoint = Boolean(alternativeWaypoint) || plannedStops.slice(1, -1).some(isAmbiguousWaypoint);
   if (hasAmbiguousWaypoint) {
     return {
       destination,
       searchDestination,
-      waypoints: plannedStops
-        .slice(1)
-        .filter((stop) => !isSameStop(stop, destination) && !isAmbiguousWaypoint(stop)),
+      waypoints: [],
       planIssue: "Chặng này có điểm “HOẶC” chưa chốt — hãy chọn điểm trên Notion trước",
     };
   }
@@ -735,18 +786,28 @@ export function getDirectionsUrl(
 
   const routeText = `${item.mapSearch} ${item.title}`;
   const guidanceText = `${routeText} ${item.note}`;
-  const hasPlannedTaxi = /(?:Ưu tiên|Di chuyển|Taxi(?:\s+search)?|Chặng[^.:]*?)\s*:\s*taxi|taxi\/Uber\s+thẳng|taxi\s+tới/i.test(
-    item.mapSearch,
-  );
+  const transitClause = getLabeledClause(item.mapSearch, /Transit/i);
+  const hasPlannedTaxi =
+    /^(?:taxi|Uber)\b/i.test(transitClause ?? "") ||
+    /(?:ưu tiên|gọi|đi)\s+taxi\s*\/\s*Uber|taxi\s*\/\s*Uber\s+(?:thẳng|tới|recommended|là gọn nhất)|taxi\s+tiện hơn/i.test(
+      guidanceText,
+    );
+  const hasTransitGuidance =
+    /\b(?:MRT|bus|train|metro)\b|(?:Blue(?:\s*\/\s*Bannan)?|Bannan|Red|Green|Orange|Brown|Yellow)\s+Line/i.test(
+      guidanceText,
+    );
   let travelMode: "walking" | "driving" | "transit" | undefined;
-  if (/International Airport Terminal\s+\d+\s*→\s*Airport Terminal\s+\d+\s+Station/i.test(routeText)) {
+  if (
+    /International Airport Terminal\s+\d+\s*→\s*Airport Terminal\s+\d+\s+Station/i.test(routeText) ||
+    (/Nhập cảnh \+ lấy hành lý/i.test(item.title) && /Airport Terminal.*→.*Airport.*Station/i.test(routeText))
+  ) {
+    travelMode = "walking";
+  } else if (/meeting point tour/i.test(item.title)) {
     travelMode = "walking";
   } else if (hasPlannedTaxi) {
     travelMode = "driving";
   } else if (
-    !/Flight|bay/i.test(routeText) &&
-    (item.categories.includes("Di chuyển") ||
-      (Boolean(route.plannedOrigin) && /\b(?:MRT|bus|train|metro)\b/i.test(routeText)))
+    !/Flight|bay/i.test(routeText) && Boolean(route.plannedOrigin) && hasTransitGuidance
   ) {
     travelMode = "transit";
   } else if (route.plannedOrigin && /(?:\bwalk(?:ing)?\b|đi bộ)/i.test(guidanceText)) {
