@@ -34,11 +34,45 @@ assert.deepEqual(
 );
 assert.equal(new Set(itinerary.map((item) => item.id)).size, itinerary.length, 'Notion row IDs must stay unique');
 
+const toMinutes = (clock) => {
+  const [hours, minutes] = clock.split(':').map(Number);
+  return hours * 60 + minutes;
+};
+
+for (const [index, item] of itinerary.entries()) {
+  assert.match(item.start, /^\d{2}:\d{2}$/);
+  assert.match(item.end, /^\d{2}:\d{2}$/);
+  assert.ok(toMinutes(item.end) > toMinutes(item.start), `${item.title}: end must be after start`);
+  const previous = itinerary[index - 1];
+  if (previous?.dayNumber === item.dayNumber) {
+    assert.ok(toMinutes(previous.end) <= toMinutes(item.start), `${item.title}: schedule must not overlap the previous row`);
+  }
+}
+
+assert.deepEqual(
+  itinerary.filter((item) => item.dayNumber === 1).map((item) => [item.start, item.title]),
+  [
+    ['07:50', 'Có mặt SGN T2 · check-in China Airlines'],
+    ['10:50', 'Bay SGN → TPE · China Airlines CI782'],
+    ['15:20', 'Nhập cảnh + lấy hành lý'],
+    ['16:40', 'Airport MRT A12 → A1 → Ximending'],
+    ['17:50', 'Check-in Muzik Hotel'],
+    ['18:40', 'Taipei 101 Observatory'],
+    ['20:15', 'Syntrend Creative Park + Guanghua Digital Plaza'],
+    ['21:30', 'Linjiang / Tonghua Night Market · ăn tối'],
+  ],
+  'Day 1 order and updated times must match Notion',
+);
+
 const blockedTitles = itinerary.filter((item) => getDirectionsIssue(item)).map((item) => item.title);
 assert.deepEqual(
   blockedTitles,
-  ['Ăn nhẹ → tới meeting point tour', 'Tour Shifen → Jiufen · chiều đến tối'],
-  'Only the two intentionally unresolved tour rows may block directions',
+  [
+    'Bay SGN → TPE · China Airlines CI782',
+    'Tour Shifen → Jiufen · chiều đến tối',
+    'Bay TPE → SGN · China Airlines CI783',
+  ],
+  'Only flights and the booked tour overview may block road directions',
 );
 
 for (const item of itinerary) {
@@ -47,8 +81,12 @@ for (const item of itinerary) {
   const currentHref = getDirectionsUrl(item, 'current');
   const planHref = getDirectionsUrl(item, 'plan');
   const plannedOrigin = getPlannedOrigin(item);
+  const searchUrl = new URL(getGoogleMapsUrl(item));
 
   assert.ok(destination.trim(), `${item.title}: destination must not be empty`);
+  assert.doesNotMatch(destination, /(?:\bNo|\bSec|\bRd|\bBlvd)$/i, `${item.title}: dotted address was truncated`);
+  assert.equal(searchUrl.origin, 'https://www.google.com');
+  assert.ok(searchUrl.searchParams.get('query')?.trim(), `${item.title}: search destination must not be empty`);
 
   if (directionsIssue) {
     assert.equal(currentHref, undefined, `${item.title}: unsafe current route must stay disabled`);
@@ -57,6 +95,7 @@ for (const item of itinerary) {
   }
 
   assert.ok(currentHref, `${item.title}: safe current route must have a URL`);
+  assert.ok(currentHref.length < 2048, `${item.title}: current Maps URL must stay below 2,048 chars`);
   const currentUrl = new URL(currentHref);
   assert.equal(currentUrl.origin, 'https://www.google.com');
   assert.equal(currentUrl.pathname, '/maps/dir/');
@@ -72,115 +111,118 @@ for (const item of itinerary) {
 
   if (plannedOrigin) {
     assert.ok(planHref, `${item.title}: resolved plan origin must have a URL`);
+    assert.ok(planHref.length < 2048, `${item.title}: planned Maps URL must stay below 2,048 chars`);
     const planUrl = new URL(planHref);
     assert.equal(planUrl.searchParams.get('origin'), plannedOrigin, `${item.title}: plan origin mismatch`);
     assert.equal(planUrl.searchParams.has('departure_time'), false, `${item.title}: planned time stays in the UI, not the URL`);
     assert.equal(planUrl.searchParams.has('dir_action'), false, `${item.title}: planned route must stay in preview mode`);
     const waypoints = planUrl.searchParams.get('waypoints')?.split('|') ?? [];
     assert.equal(waypoints.includes(plannedOrigin), false, `${item.title}: origin repeated as waypoint`);
+    assert.ok(waypoints.length <= 3, `${item.title}: mobile Maps URLs support at most three waypoints`);
     if (travelMode === 'transit') {
       assert.equal(planUrl.searchParams.has('waypoints'), false, `${item.title}: planned transit must stay one leg`);
     }
   } else {
-    assert.equal(planHref, undefined, `${item.title}: ambiguous plan route must stay disabled`);
+    assert.equal(planHref, undefined, `${item.title}: unresolved plan origin must stay disabled`);
   }
 }
 
-const airportMrt = itinerary.find((item) => item.title.startsWith('Airport MRT A12'));
-assert.ok(airportMrt, 'Representative Airport MRT route is missing');
-const airportCurrent = new URL(getDirectionsUrl(airportMrt, 'current'));
+const find = (title) => {
+  const item = itinerary.find((candidate) => candidate.title === title || candidate.title.startsWith(title));
+  assert.ok(item, `Representative row is missing: ${title}`);
+  return item;
+};
+
+const expectedModes = new Map([
+  ['Nhập cảnh + lấy hành lý', 'walking'],
+  ['Airport MRT A12', 'transit'],
+  ['Taipei 101 Observatory', 'transit'],
+  ['Syntrend Creative Park', 'transit'],
+  ['Linjiang / Tonghua', 'driving'],
+  ['Ximen → Yangmingshan', 'transit'],
+  ['Qingtiangang → Shilin', 'transit'],
+  ['Wu Jia Beef Noodles', 'driving'],
+  ['Dadaocheng sunset', 'driving'],
+  ['Dậy sớm', 'driving'],
+  ['Daan Forest Park', 'driving'],
+  ['Longshan → Taipei Main', 'transit'],
+  ['Ăn nhẹ →', 'walking'],
+  ['Raohe Night Market', 'transit'],
+  ['Ximen → A1', 'transit'],
+]);
+
+for (const [title, mode] of expectedModes) {
+  const url = new URL(getDirectionsUrl(find(title), 'current'));
+  assert.equal(url.searchParams.get('travelmode'), mode, `${title}: wrong travel mode`);
+}
+
+const airportMrt = find('Airport MRT A12');
 const airportPlan = new URL(getDirectionsUrl(airportMrt, 'plan'));
-assert.equal(airportCurrent.searchParams.has('origin'), false);
-assert.equal(airportPlan.searchParams.get('origin'), 'Airport Terminal 1 Station (A12)');
+assert.match(airportPlan.searchParams.get('origin'), /^A12 Airport Terminal 1 Station/);
+assert.match(airportPlan.searchParams.get('destination'), /^Muzik Hotel - Ximen Station Branch/);
 assert.equal(airportPlan.searchParams.has('waypoints'), false);
-assert.equal(airportPlan.searchParams.has('dir_action'), false);
-assert.equal(airportPlan.searchParams.get('destination'), 'Muzik Hotel Ximen Station Branch');
-assert.equal(airportPlan.searchParams.get('travelmode'), 'transit');
 
-const multiLeg = itinerary.find((item) => item.title.startsWith('Ximen → A1'));
-assert.ok(multiLeg, 'Representative multi-leg airport route is missing');
-const multiLegPlan = new URL(getDirectionsUrl(multiLeg, 'plan'));
-assert.equal(multiLegPlan.searchParams.get('origin'), 'Ximen Station');
-assert.equal(multiLegPlan.searchParams.has('waypoints'), false);
-assert.equal(multiLegPlan.searchParams.get('destination'), 'Airport Terminal 1 Station A12');
-assert.equal(multiLegPlan.searchParams.get('travelmode'), 'transit');
+const syntrend = find('Syntrend Creative Park');
+const syntrendPlan = new URL(getDirectionsUrl(syntrend, 'plan'));
+assert.match(syntrendPlan.searchParams.get('origin'), /^Taipei 101 Observatory/);
+assert.match(syntrendPlan.searchParams.get('destination'), /^Syntrend Creative Park, No\. 2/);
+assert.equal(syntrendPlan.searchParams.has('waypoints'), false);
 
-const supplementalPoi = itinerary.find((item) => item.title.startsWith('Syntrend Creative Park'));
-assert.ok(supplementalPoi, 'Representative transit-to-POI row is missing');
-const supplementalPlan = new URL(getDirectionsUrl(supplementalPoi, 'plan'));
-assert.equal(supplementalPlan.searchParams.get('origin'), 'Ximen Station');
-assert.equal(supplementalPlan.searchParams.has('waypoints'), false);
-assert.equal(supplementalPlan.searchParams.get('destination'), 'Guang Hua Digital Plaza');
-assert.equal(supplementalPlan.searchParams.get('travelmode'), 'transit');
+const taxiLeg = find('Wu Jia Beef Noodles');
+assert.match(getMapDestination(taxiLeg), /^The Gaia Hotel, No\. 1, Qiyan Rd\./);
+assert.match(getPlannedOrigin(taxiLeg), /^Wu Jia Beef Noodles .*No\. 224, Sec\. 1/);
+
+const multiStopTaxi = find('Dadaocheng sunset');
+const multiStopTaxiPlan = new URL(getDirectionsUrl(multiStopTaxi, 'plan'));
+assert.match(multiStopTaxiPlan.searchParams.get('waypoints'), /^Dadaocheng Wharf/);
+
+const meetingPoint = find('Ăn nhẹ →');
+assert.equal(getDirectionsIssue(meetingPoint), undefined, 'The updated meeting point is no longer TBD');
+assert.match(getMapDestination(meetingPoint), /^Taipei Main Station East Gate 3/);
+assert.match(new URL(getDirectionsUrl(meetingPoint, 'plan')).searchParams.get('waypoints'), /^Dadaocheng Braised Pork Rice/);
+
+const raohe = find('Raohe Night Market');
+assert.match(getMapDestination(raohe), /^Raohe Night Market/);
+assert.match(getPlannedOrigin(raohe), /^Taipei Main Station/);
+
+const samePlace = find('Xiaoyoukeng ·');
+assert.equal(getPlannedOrigin(samePlace), undefined);
+assert.equal(new URL(getDirectionsUrl(samePlace, 'current')).searchParams.get('travelmode'), null);
+
+const nextLegMention = find('Qingtiangang Grassland');
+assert.equal(getPlannedOrigin(nextLegMention), undefined);
+assert.equal(new URL(getDirectionsUrl(nextLegMention, 'current')).searchParams.get('travelmode'), null);
+
+const ambiguousStop = find('Daan Forest Park /');
+assert.match(getPlanDirectionsIssue(ambiguousStop), /HOẶC/);
+assert.equal(getDirectionsUrl(ambiguousStop, 'plan'), undefined);
+const ambiguousCurrent = new URL(getDirectionsUrl(ambiguousStop, 'current'));
+assert.match(ambiguousCurrent.searchParams.get('destination'), /^Bangka Lungshan Temple/);
+assert.equal(ambiguousCurrent.searchParams.has('waypoints'), false);
+
+const guidedTour = find('Tour Shifen');
+assert.match(getDirectionsIssue(guidedTour), /voucher/);
+assert.match(getMapDestination(guidedTour), /^Jiufen Old Street/);
+
+for (const flightTitle of ['Bay SGN → TPE', 'Bay TPE → SGN']) {
+  const flight = find(flightTitle);
+  assert.match(getDirectionsIssue(flight), /Chặng bay/);
+  assert.match(new URL(getGoogleMapsUrl(flight)).searchParams.get('query'), /International Airport.*Terminal/);
+}
+
+const holyFamily = find('Holy Family Catholic Church ·');
+assert.match(getMapDestination(holyFamily), /No\. 50, Sec\. 2, Xinsheng S\. Rd\./);
+const cityMall = find('Taipei City Mall ·');
+assert.match(getMapDestination(cityMall), /No\. 100, Section 1, Shimin Blvd\./);
 
 const supplementalFixture = {
-  ...supplementalPoi,
+  ...syntrend,
   mapSearch: 'Maps: Syntrend Creative Park; Guang Hua Digital Plaza | MRT: Ximen Station → Zhongxiao Xinsheng Station → Syntrend Creative Park',
 };
 const supplementalFixturePlan = new URL(getDirectionsUrl(supplementalFixture, 'plan'));
 assert.equal(supplementalFixturePlan.searchParams.get('origin'), 'Ximen Station');
-assert.equal(supplementalFixturePlan.searchParams.has('waypoints'), false);
 assert.equal(supplementalFixturePlan.searchParams.get('destination'), 'Guang Hua Digital Plaza');
-
-const observatory = itinerary.find((item) => item.title === 'Taipei 101 Observatory');
-assert.ok(observatory, 'Representative MRT attraction row is missing');
-assert.equal(new URL(getDirectionsUrl(observatory, 'plan')).searchParams.get('travelmode'), 'transit');
-
-const taxiLeg = itinerary.find((item) => item.title.startsWith('Wu Jia Beef Noodles'));
-assert.ok(taxiLeg, 'Representative taxi row is missing');
-assert.equal(new URL(getDirectionsUrl(taxiLeg, 'plan')).searchParams.get('travelmode'), 'driving');
-
-const multiStopTaxi = itinerary.find((item) => item.title.startsWith('Dadaocheng sunset'));
-assert.ok(multiStopTaxi, 'Representative multi-stop taxi row is missing');
-const multiStopTaxiPlan = new URL(getDirectionsUrl(multiStopTaxi, 'plan'));
-assert.equal(multiStopTaxiPlan.searchParams.get('waypoints'), 'Dadaocheng Wharf');
-assert.equal(multiStopTaxiPlan.searchParams.has('dir_action'), false);
-
-const airportWalk = itinerary.find((item) => item.title === 'Nhập cảnh + lấy hành lý');
-assert.ok(airportWalk, 'Representative in-airport walking row is missing');
-assert.equal(new URL(getDirectionsUrl(airportWalk, 'plan')).searchParams.get('travelmode'), 'walking');
-
-const marketWalk = itinerary.find((item) => item.title.startsWith('Longshan Temple +'));
-assert.ok(marketWalk, 'Representative walking row is missing');
-assert.equal(new URL(getDirectionsUrl(marketWalk, 'plan')).searchParams.get('travelmode'), 'walking');
-
-const hotSpring = itinerary.find((item) => item.title.startsWith('The Gaia Hotel ·'));
-assert.ok(hotSpring, 'Representative stay-put row is missing');
-assert.equal(new URL(getDirectionsUrl(hotSpring, 'current')).searchParams.has('travelmode'), false);
-
-const conditionalOrigin = itinerary.find((item) => item.title.startsWith('Raohe Night Market'));
-assert.ok(conditionalOrigin, 'Representative conditional-origin row is missing');
-assert.equal(getPlannedOrigin(conditionalOrigin), undefined, 'A conditional origin must not be invented');
-assert.equal(getDirectionsUrl(conditionalOrigin, 'plan'), undefined);
-
-const samePlace = itinerary.find((item) => item.title.startsWith('Xiaoyoukeng ·'));
-assert.ok(samePlace, 'Representative same-place row is missing');
-assert.equal(getPlannedOrigin(samePlace), undefined, 'A route starting at the destination must stay disabled');
-assert.equal(new URL(getDirectionsUrl(samePlace, 'current')).searchParams.get('travelmode'), null);
-
-const nextLegMention = itinerary.find((item) => item.title.startsWith('Qingtiangang Grassland'));
-assert.ok(nextLegMention, 'Representative next-leg mention row is missing');
-assert.equal(new URL(getDirectionsUrl(nextLegMention, 'current')).searchParams.get('travelmode'), null);
-
-const meetingTbd = itinerary.find((item) => item.title.startsWith('Ăn nhẹ →'));
-assert.ok(meetingTbd, 'Representative TBD row is missing');
-assert.match(getDirectionsIssue(meetingTbd), /TBD/);
-assert.equal(getDirectionsUrl(meetingTbd, 'current'), undefined);
-assert.doesNotMatch(new URL(getGoogleMapsUrl(meetingTbd)).searchParams.get('query'), /TBD/i);
-
-const guidedTour = itinerary.find((item) => item.title.startsWith('Tour Shifen'));
-assert.ok(guidedTour, 'Representative guided-tour row is missing');
-assert.match(getDirectionsIssue(guidedTour), /voucher/);
-assert.equal(getDirectionsUrl(guidedTour, 'current'), undefined);
-
-const ambiguousStop = itinerary.find((item) => item.title.startsWith('Daan Forest Park /'));
-assert.ok(ambiguousStop, 'Representative optional-stop row is missing');
-assert.match(getPlanDirectionsIssue(ambiguousStop), /HOẶC/);
-assert.equal(getDirectionsUrl(ambiguousStop, 'plan'), undefined);
-assert.equal(new URL(getDirectionsUrl(ambiguousStop, 'current')).searchParams.get('destination'), 'Lungshan Temple');
-
-const bilingualOrigin = marketWalk;
-assert.ok(bilingualOrigin, 'Representative bilingual-origin row is missing');
-assert.match(getPlannedOrigin(bilingualOrigin), /龍山寺/);
+assert.equal(supplementalFixturePlan.searchParams.get('travelmode'), 'transit');
+assert.equal(supplementalFixturePlan.searchParams.has('waypoints'), false);
 
 console.log(`Map route checks passed for ${itinerary.length} itinerary items.`);

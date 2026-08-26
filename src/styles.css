@@ -613,6 +613,101 @@ main {
   color: rgba(255, 255, 255, 0.68);
 }
 
+.transport-token {
+  padding: 0.05em 0.3em;
+  color: #24372e;
+  background: #e9ede8;
+  border-bottom: 2px solid #79887f;
+  border-radius: 0.38em;
+  box-decoration-break: clone;
+  font-weight: 800;
+  white-space: nowrap;
+  -webkit-box-decoration-break: clone;
+}
+
+.transport-token--airport-rail {
+  color: #4d327c;
+  background: #eee5ff;
+  border-color: #7c55b3;
+}
+
+.transport-token--line-blue {
+  color: #174c91;
+  background: #dbeafe;
+  border-color: #3978ce;
+}
+
+.transport-token--line-red {
+  color: #951f30;
+  background: #ffe2e4;
+  border-color: #d44858;
+}
+
+.transport-token--line-green {
+  color: #1e663c;
+  background: #dcefe2;
+  border-color: #3c9660;
+}
+
+.transport-token--line-orange {
+  color: #8b470e;
+  background: #ffe8d5;
+  border-color: #e78335;
+}
+
+.transport-token--line-brown {
+  color: #674236;
+  background: #ecdfd9;
+  border-color: #916352;
+}
+
+.transport-token--line-yellow {
+  color: #6c5600;
+  background: #fff2b8;
+  border-color: #c9a814;
+}
+
+.transport-token--bus {
+  color: #17566b;
+  background: #d9f0f6;
+  border-color: #3e8ca5;
+  font-variant-numeric: tabular-nums;
+}
+
+.transport-token--taxi {
+  color: #744c00;
+  background: #ffedbd;
+  border-color: #d99b1a;
+}
+
+.transport-token--walk {
+  color: #365b37;
+  background: #e0eedc;
+  border-color: #6e9b68;
+}
+
+.transport-token--rail {
+  color: #4a3c7e;
+  background: #e8e4f7;
+  border-color: #8170b4;
+}
+
+.transport-token--flight {
+  color: #23577a;
+  background: #deedf7;
+  border-color: #6599bc;
+}
+
+.activity-card.current .transport-token {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.16);
+}
+
+@media (forced-colors: active) {
+  .transport-token {
+    border: 1px solid currentColor;
+  }
+}
+
 .activity-actions {
   display: flex;
   flex-wrap: wrap;

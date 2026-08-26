@@ -44,6 +44,7 @@ import {
   itineraryExportedAt,
   type ItineraryItem,
 } from './data/itinerary';
+import { tokenizeTransportText } from './lib/transportText';
 import './styles.css';
 
 type AppMode = 'now' | 'day' | 'trip' | 'route';
@@ -281,6 +282,18 @@ function isTransport(item: ItineraryItem) {
   );
 }
 
+function TransportText({ text }: { text: string }) {
+  return tokenizeTransportText(text).map((segment, index) =>
+    segment.kind ? (
+      <span className={`transport-token transport-token--${segment.kind}`} key={`${segment.value}-${index}`}>
+        {segment.value}
+      </span>
+    ) : (
+      segment.value
+    ),
+  );
+}
+
 function Header({
   online,
   onShare,
@@ -343,7 +356,7 @@ function ActivityCard({
             {state === 'current' && <em>Đang diễn ra</em>}
             {state === 'past' && <Check size={13} aria-label="Đã xong" />}
           </span>
-          <strong>{item.title}</strong>
+          <strong><TransportText text={item.title} /></strong>
           <span className="activity-area">
             <MapPin size={13} /> {item.area}
           </span>
@@ -360,7 +373,7 @@ function ActivityCard({
               </span>
             ))}
           </div>
-          <p>{item.note}</p>
+          <p><TransportText text={item.note} /></p>
           <div className="activity-actions">
             <button className="map-button primary" type="button" onClick={() => onDirections(item)}>
               <Navigation size={17} /> Chỉ đường
