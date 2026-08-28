@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowRight,
   ArrowUpRight,
   BedDouble,
+  Bookmark,
   Bus,
   CalendarDays,
   Check,
@@ -17,8 +18,10 @@ import {
   Footprints,
   Info,
   LocateFixed,
+  Languages,
   Map,
   MapPin,
+  Maximize2,
   Mountain,
   Navigation,
   Plane,
@@ -26,10 +29,12 @@ import {
   Route,
   Share2,
   ShoppingBag,
+  ShieldAlert,
   Sparkles,
   TimerReset,
   TrainFront,
   UtensilsCrossed,
+  Volume2,
   Wifi,
   X,
 } from 'lucide-react';
@@ -44,10 +49,18 @@ import {
   itineraryExportedAt,
   type ItineraryItem,
 } from './data/itinerary';
+import {
+  phraseCategoryLabels,
+  taxiDestinations,
+  travelPhrases,
+  type PhraseCategory,
+  type TaxiDestination,
+  type TravelPhrase,
+} from './data/phrases';
 import { tokenizeTransportText } from './lib/transportText';
 import './styles.css';
 
-type AppMode = 'now' | 'day' | 'trip' | 'route';
+type AppMode = 'now' | 'saved' | 'phrases' | 'route';
 
 type TimelineState = {
   current?: ItineraryItem;
@@ -64,6 +77,9 @@ const PREVIEW_SLIDER_STEP_MINUTES = 5;
 
 const SOURCE_URL =
   'https://app.notion.com/p/aef8fa576f704484bc66494b64004474?v=3afe8e18611981c79e78000c06433c8e';
+const SAVED_STORAGE_KEY = 'tripguide-saved-destinations-v1';
+const primaryItinerary = itinerary.filter((item) => !item.isBackup);
+const backupCount = itinerary.length - primaryItinerary.length;
 const SYNCED_LABEL = new Intl.DateTimeFormat('vi-VN', {
   timeZone: 'Asia/Ho_Chi_Minh',
   day: '2-digit',
@@ -73,45 +89,14 @@ const SYNCED_LABEL = new Intl.DateTimeFormat('vi-VN', {
   minute: '2-digit',
 }).format(new Date(itineraryExportedAt));
 
-const dayMeta = {
-  1: {
-    eyebrow: 'Chạm ngõ Taipei',
-    title: 'Từ SGN đến phố đêm',
-    summary: 'Hạ cánh, đồ công nghệ, Taipei 101 và bữa tối đầu tiên.',
-    image: 'images/taiwan-hero.webp',
-    accent: '#ffb66e',
-  },
-  2: {
-    eyebrow: 'Núi xanh & onsen',
-    title: 'Yangmingshan đến Beitou',
-    summary: 'Đồng cỏ, suối nóng, hoàng hôn và chợ đêm Ningxia.',
-    image: 'images/yangmingshan.webp',
-    accent: '#99c785',
-  },
-  3: {
-    eyebrow: 'Làng cổ & thác',
-    title: 'Jiufen, Shifen và Raohe',
-    summary: 'Một ngày tàu địa phương, đèn lồng, thác nước và đồ ăn.',
-    image: 'images/jiufen-shifen.webp',
-    accent: '#f28d69',
-  },
-  4: {
-    eyebrow: 'Mang Đài Loan về nhà',
-    title: 'Taipei đến Tân Sơn Nhất',
-    summary: 'Ăn sáng thong thả, trả phòng và ra sân bay đúng nhịp.',
-    image: 'images/taiwan-hero.webp',
-    accent: '#8bb9cf',
-  },
-} as const;
-
 const navItems: Array<{
   id: AppMode;
   label: string;
   icon: typeof Compass;
 }> = [
   { id: 'now', label: 'Bây giờ', icon: LocateFixed },
-  { id: 'day', label: 'Theo ngày', icon: CalendarDays },
-  { id: 'trip', label: 'Cả chuyến', icon: Compass },
+  { id: 'saved', label: 'Đã lưu', icon: Bookmark },
+  { id: 'phrases', label: 'Câu nói', icon: Languages },
   { id: 'route', label: 'Tuyến', icon: Route },
 ];
 
@@ -140,7 +125,7 @@ function toInstant(item: ItineraryItem, edge: 'start' | 'end') {
 }
 
 function orderedItems() {
-  return [...itinerary].sort(
+  return [...primaryItinerary].sort(
     (a, b) => toInstant(a, 'start').getTime() - toInstant(b, 'start').getTime(),
   );
 }
@@ -182,8 +167,19 @@ function formatPreviewClock(minutes: number) {
 }
 
 function getPreviewInstant(day: number, minutes: number) {
-  const sample = itinerary.find((item) => item.dayNumber === day) ?? itinerary[0];
+  const sample = primaryItinerary.find((item) => item.dayNumber === day) ?? primaryItinerary[0];
   return new Date(`${sample.date}T${formatPreviewClock(minutes)}:00+08:00`);
+}
+
+function getBackupsFor(item: ItineraryItem) {
+  if (item.isBackup) return [];
+  return itinerary.filter(
+    (candidate) =>
+      candidate.isBackup &&
+      candidate.dayNumber === item.dayNumber &&
+      candidate.start === item.start &&
+      candidate.end === item.end,
+  );
 }
 
 function getTaipeiMinutes(date: Date) {
@@ -331,6 +327,10 @@ function ActivityCard({
   onToggle,
   onDirections,
   onPreview,
+  backups = [],
+  isSaved = false,
+  savedIds = [],
+  onToggleSaved,
   compact = false,
 }: {
   item: ItineraryItem;
@@ -339,13 +339,17 @@ function ActivityCard({
   onToggle: () => void;
   onDirections: OpenDirections;
   onPreview?: () => void;
+  backups?: readonly ItineraryItem[];
+  isSaved?: boolean;
+  savedIds?: readonly string[];
+  onToggleSaved?: (item: ItineraryItem) => void;
   compact?: boolean;
 }) {
   const Icon = getCategoryIcon(item);
   const primaryCategory = item.categories[0] ?? 'Tham quan';
 
   return (
-    <article className={`activity-card ${state} ${compact ? 'compact' : ''}`}>
+    <article className={`activity-card ${state} ${item.isBackup ? 'backup' : ''} ${compact ? 'compact' : ''}`}>
       <button className="activity-summary" type="button" onClick={onToggle} aria-expanded={expanded}>
         <span className={`activity-icon ${categoryClass(primaryCategory)}`}>
           <Icon size={20} />
@@ -386,9 +390,73 @@ function ActivityCard({
                 <Clock3 size={16} /> Xem lúc này
               </button>
             )}
+            {onToggleSaved && (
+              <button
+                className={`preview-here save-toggle ${isSaved ? 'saved' : ''}`}
+                type="button"
+                aria-pressed={isSaved}
+                onClick={() => onToggleSaved(item)}
+              >
+                <Bookmark size={16} fill={isSaved ? 'currentColor' : 'none'} />
+                {isSaved ? 'Đã lưu' : 'Lưu điểm'}
+              </button>
+            )}
           </div>
+          {backups.length > 0 && (
+            <div className="backup-options" aria-label="Phương án dự phòng">
+              <div className="backup-options-heading">
+                <RefreshCcw size={15} />
+                <span><strong>Có phương án backup</strong><small>Dùng khi lỡ chuyến hoặc tuyến chính không thuận lợi</small></span>
+              </div>
+              {backups.map((backup) => (
+                <BackupRouteOption
+                  key={backup.id}
+                  item={backup}
+                  onDirections={onDirections}
+                  isSaved={savedIds.includes(backup.id)}
+                  onToggleSaved={onToggleSaved}
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
+    </article>
+  );
+}
+
+function BackupRouteOption({
+  item,
+  onDirections,
+  isSaved,
+  onToggleSaved,
+}: {
+  item: ItineraryItem;
+  onDirections: OpenDirections;
+  isSaved: boolean;
+  onToggleSaved?: (item: ItineraryItem) => void;
+}) {
+  return (
+    <article className="backup-option-card">
+      <div className="backup-option-label"><RefreshCcw size={13} /> BACKUP</div>
+      <strong><TransportText text={item.title.replace(/^🔄\s*BACKUP\s*—\s*/i, '')} /></strong>
+      <p><TransportText text={item.note} /></p>
+      <div className="backup-option-actions">
+        <button type="button" onClick={() => onDirections(item)}>
+          <Navigation size={15} /> Chỉ đường backup
+        </button>
+        {onToggleSaved && (
+          <button
+            className={isSaved ? 'saved' : ''}
+            type="button"
+            aria-pressed={isSaved}
+            onClick={() => onToggleSaved(item)}
+          >
+            <Bookmark size={15} fill={isSaved ? 'currentColor' : 'none'} />
+            {isSaved ? 'Đã lưu' : 'Lưu'}
+          </button>
+        )}
+      </div>
     </article>
   );
 }
@@ -509,6 +577,8 @@ function NowScreen({
   onPreviewDestination,
   onPreviewEnable,
   onPreviewReset,
+  savedIds,
+  onToggleSaved,
 }: {
   timeline: TimelineState;
   effectiveNow: Date;
@@ -523,12 +593,14 @@ function NowScreen({
   onPreviewDestination: (item: ItineraryItem) => void;
   onPreviewEnable: () => void;
   onPreviewReset: () => void;
+  savedIds: readonly string[];
+  onToggleSaved: (item: ItineraryItem) => void;
 }) {
   const first = orderedItems()[0];
   const last = orderedItems().at(-1)!;
   const beforeTrip = effectiveNow < toInstant(first, 'start');
   const afterTrip = effectiveNow >= toInstant(last, 'end');
-  const progress = Math.round((timeline.completed / itinerary.length) * 100);
+  const progress = Math.round((timeline.completed / primaryItinerary.length) * 100);
 
   return (
     <div className="screen now-screen">
@@ -544,7 +616,8 @@ function NowScreen({
           <p>30/08 — 02/09/2026 · Taipei & New Taipei</p>
           <div className="hero-stats">
             <span><b>4</b> ngày</span>
-            <span><b>{itinerary.length}</b> điểm</span>
+            <span><b>{primaryItinerary.length}</b> điểm</span>
+            <span><b>{backupCount}</b> backup</span>
             <span><b>{progress}%</b> xong</span>
           </div>
         </div>
@@ -583,7 +656,7 @@ function NowScreen({
           <div className="complete-card">
             <span><Check size={26} /></span>
             <div>
-              <strong>Hoàn thành {itinerary.length}/{itinerary.length} hoạt động</strong>
+              <strong>Hoàn thành {primaryItinerary.length}/{primaryItinerary.length} hoạt động</strong>
               <p>Lịch vẫn ở đây cho album ảnh và chuyến Đài Loan lần sau.</p>
             </div>
           </div>
@@ -594,6 +667,10 @@ function NowScreen({
             expanded
             onToggle={() => onExpand(timeline.current!.id)}
             onDirections={onDirections}
+            backups={getBackupsFor(timeline.current)}
+            isSaved={savedIds.includes(timeline.current.id)}
+            savedIds={savedIds}
+            onToggleSaved={onToggleSaved}
           />
         ) : beforeTrip ? (
           <div className="countdown-card">
@@ -629,6 +706,10 @@ function NowScreen({
             expanded={expandedId === timeline.next.id}
             onToggle={() => onExpand(timeline.next!.id)}
             onDirections={onDirections}
+            backups={getBackupsFor(timeline.next)}
+            isSaved={savedIds.includes(timeline.next.id)}
+            savedIds={savedIds}
+            onToggleSaved={onToggleSaved}
           />
         </section>
       )}
@@ -647,156 +728,243 @@ function NowScreen({
   );
 }
 
-function DayScreen({
-  selectedDay,
-  onDayChange,
-  effectiveNow,
+type PhraseDisplay = {
+  id: string;
+  vi: string;
+  zh: string;
+  romanization: string;
+  speech: string;
+  note?: string;
+  addressZh?: string;
+};
+
+function SavedScreen({
+  savedIds,
   expandedId,
   onExpand,
   onDirections,
+  onToggleSaved,
   onPreviewItem,
 }: {
-  selectedDay: number;
-  onDayChange: (day: number) => void;
-  effectiveNow: Date;
+  savedIds: readonly string[];
   expandedId?: string;
   onExpand: (id: string) => void;
   onDirections: OpenDirections;
+  onToggleSaved: (item: ItineraryItem) => void;
   onPreviewItem: (item: ItineraryItem) => void;
 }) {
-  const meta = dayMeta[selectedDay as keyof typeof dayMeta];
-  const items = itinerary.filter((item) => item.dayNumber === selectedDay);
+  const savedItems = itinerary.filter((item) => savedIds.includes(item.id));
+  const savedDays = [...new Set(savedItems.map((item) => item.dayNumber))];
 
   return (
-    <div className="screen day-screen">
+    <div className="screen saved-screen">
       <div className="screen-title-row">
         <div>
-          <span className="section-kicker">Chi tiết từng ngày</span>
-          <h1>Lịch trình của mình</h1>
+          <span className="section-kicker">Mở lại trong một chạm</span>
+          <h1>Điểm đã lưu</h1>
         </div>
-        <span className="item-count">{items.length} mục</span>
+        <span className="item-count">{savedItems.length} điểm</span>
       </div>
 
-      <div className="day-pills sticky-days">
-        {[1, 2, 3, 4].map((day) => (
-          <button
-            className={selectedDay === day ? 'active' : ''}
-            type="button"
-            key={day}
-            onClick={() => onDayChange(day)}
-          >
-            <span>N{day}</span>
-            <small>{day === 1 ? '30/8' : day === 2 ? '31/8' : day === 3 ? '1/9' : '2/9'}</small>
-          </button>
-        ))}
-      </div>
-
-      <section className="day-cover" style={{ '--day-accent': meta.accent } as CSSProperties}>
-        <img src={meta.image} alt={meta.title} />
-        <div className="day-cover-shade" />
+      <section className="saved-intro">
+        <span><Bookmark size={22} fill="currentColor" /></span>
         <div>
-          <span>{meta.eyebrow}</span>
-          <h2>{meta.title}</h2>
-          <p>{meta.summary}</p>
+          <strong>Bookmark ngay chặng cần nhớ</strong>
+          <p>Mở một mục trong tab Tuyến rồi bấm “Lưu điểm”. Danh sách này vẫn còn khi bạn mở app lại.</p>
         </div>
       </section>
 
-      <section className="timeline" aria-label={`Lịch trình ngày ${selectedDay}`}>
-        {items.map((item) => {
-          const state =
-            toInstant(item, 'end') <= effectiveNow
-              ? 'past'
-              : toInstant(item, 'start') <= effectiveNow && effectiveNow < toInstant(item, 'end')
-                ? 'current'
-                : 'upcoming';
-          return (
-            <div className="timeline-item" key={item.id}>
-              <span className={`timeline-dot ${state}`} />
-              <ActivityCard
-                item={item}
-                state={state}
-                expanded={expandedId === item.id}
-                onToggle={() => onExpand(item.id)}
-                onDirections={onDirections}
-                onPreview={() => onPreviewItem(item)}
-              />
-            </div>
-          );
-        })}
-      </section>
+      {savedItems.length === 0 ? (
+        <section className="empty-saved">
+          <span><Bookmark size={30} /></span>
+          <h2>Chưa lưu điểm nào</h2>
+          <p>Những chặng taxi, điểm hẹn hoặc tuyến backup là các mục nên lưu trước.</p>
+        </section>
+      ) : (
+        <div className="saved-groups">
+          {savedDays.map((day) => (
+            <section className="saved-day-group" key={day}>
+              <div className="saved-day-heading">
+                <span>Ngày {day}</span>
+                <small>{savedItems.filter((item) => item.dayNumber === day).length} điểm</small>
+              </div>
+              <div className="saved-list">
+                {savedItems
+                  .filter((item) => item.dayNumber === day)
+                  .map((item) => (
+                    <ActivityCard
+                      key={item.id}
+                      item={item}
+                      expanded={expandedId === item.id}
+                      onToggle={() => onExpand(item.id)}
+                      onDirections={onDirections}
+                      onPreview={() => onPreviewItem(item)}
+                      backups={getBackupsFor(item)}
+                      isSaved
+                      savedIds={savedIds}
+                      onToggleSaved={onToggleSaved}
+                    />
+                  ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
-function TripScreen({
-  effectiveNow,
-  onOpenDay,
+function phraseToDisplay(phrase: TravelPhrase): PhraseDisplay {
+  return {
+    id: phrase.id,
+    vi: phrase.vi,
+    zh: phrase.zh,
+    romanization: phrase.romanization,
+    speech: phrase.zh,
+    note: phrase.note,
+  };
+}
+
+function taxiToDisplay(destination: TaxiDestination): PhraseDisplay {
+  return {
+    id: `taxi-${destination.id}`,
+    vi: `Đưa mình đến ${destination.nameVi}`,
+    zh: `請帶我去${destination.nameZh}，謝謝。`,
+    romanization: destination.romanization,
+    speech: destination.speech,
+    note: destination.nameZh,
+    addressZh: destination.addressZh,
+  };
+}
+
+function getTaxiMapUrl(destination: TaxiDestination) {
+  const params = new URLSearchParams({ api: '1', query: destination.mapQuery });
+  return `https://www.google.com/maps/search/?${params.toString()}`;
+}
+
+function PhrasesScreen({
+  onOpenPhrase,
+  onSpeak,
 }: {
-  effectiveNow: Date;
-  onOpenDay: (day: number) => void;
+  onOpenPhrase: (phrase: PhraseDisplay) => void;
+  onSpeak: (text: string) => void;
 }) {
-  const timeline = getTimelineState(effectiveNow);
-  const completedDays = [1, 2, 3, 4].filter((day) => {
-    const items = itinerary.filter((item) => item.dayNumber === day);
-    return items.every((item) => toInstant(item, 'end') <= effectiveNow);
-  }).length;
+  const [category, setCategory] = useState<PhraseCategory | 'all'>('all');
+  const visiblePhrases =
+    category === 'all'
+      ? travelPhrases
+      : travelPhrases.filter((phrase) => phrase.category === category);
 
   return (
-    <div className="screen trip-screen">
-      <div className="screen-title-row trip-title">
+    <div className="screen phrases-screen">
+      <div className="screen-title-row">
         <div>
-          <span className="section-kicker">Toàn cảnh chuyến đi</span>
-          <h1>4 ngày, một Đài Loan</h1>
+          <span className="section-kicker">Việt · 中文 · Pinyin</span>
+          <h1>Câu nói bỏ túi</h1>
         </div>
-        <span className="round-progress">{completedDays}/4</span>
+        <Languages size={28} />
       </div>
 
-      <section className="trip-overview">
+      <section className="phrase-hero">
         <div>
-          <span>TIỆN NHẤT TRÊN MOBILE</span>
-          <strong>4N3Đ</strong>
-          <p>Taipei · New Taipei · Taoyuan</p>
+          <span>ZH–TW</span>
+          <h2>Chạm để đưa người địa phương xem</h2>
+          <p>Nút loa đọc bằng giọng Hoa Đài Loan có sẵn trên điện thoại.</p>
         </div>
-        <div className="overview-numbers">
-          <span><b>{itinerary.length}</b> hoạt động</span>
-          <span><b>3</b> ảnh chuyến đi</span>
-          <span><b>{timeline.completed}</b> đã xong</span>
+        <Volume2 size={30} />
+      </section>
+
+      <section className="taxi-section">
+        <div className="section-heading slim">
+          <div>
+            <span className="section-kicker">Đưa tài xế xem</span>
+            <h2>Địa chỉ taxi chính xác</h2>
+          </div>
+          <Navigation size={21} />
+        </div>
+        <div className="taxi-destination-list">
+          {taxiDestinations.map((destination) => {
+            const display = taxiToDisplay(destination);
+            return (
+              <article className="taxi-destination-card" key={destination.id}>
+                <button type="button" className="taxi-destination-main" onClick={() => onOpenPhrase(display)}>
+                  <span className="taxi-index">計</span>
+                  <span>
+                    <small>{destination.nameVi}</small>
+                    <strong lang="zh-Hant">{destination.nameZh}</strong>
+                    <em lang="zh-Hant">{destination.addressZh}</em>
+                  </span>
+                  <Maximize2 size={17} />
+                </button>
+                <div className="taxi-destination-actions">
+                  <button type="button" onClick={() => onSpeak(destination.speech)}>
+                    <Volume2 size={16} /> Đọc
+                  </button>
+                  <a href={getTaxiMapUrl(destination)} target="_blank" rel="noreferrer">
+                    <Map size={16} /> Bản đồ
+                  </a>
+                </div>
+              </article>
+            );
+          })}
         </div>
       </section>
 
-      <section className="day-gallery">
-        {[1, 2, 3, 4].map((day) => {
-          const meta = dayMeta[day as keyof typeof dayMeta];
-          const items = itinerary.filter((item) => item.dayNumber === day);
-          const done = items.every((item) => toInstant(item, 'end') <= effectiveNow);
-          return (
-            <button className="trip-day-card" type="button" key={day} onClick={() => onOpenDay(day)}>
-              <img src={meta.image} alt="" />
-              <span className="trip-day-shade" />
-              <span className="trip-day-number">0{day}</span>
-              {done && <span className="done-badge"><Check size={14} /> Xong</span>}
-              <span className="trip-day-content">
-                <small>{meta.eyebrow}</small>
-                <strong>{meta.title}</strong>
-                <span>{items.length} hoạt động <ChevronRight size={15} /></span>
-              </span>
+      <section className="phrasebook-section">
+        <div className="section-heading">
+          <div>
+            <span className="section-kicker">Dùng nhanh</span>
+            <h2>Câu thiết yếu</h2>
+          </div>
+          <span className="item-count">{visiblePhrases.length} câu</span>
+        </div>
+
+        <div className="phrase-filter" role="group" aria-label="Lọc câu nói">
+          <button type="button" className={category === 'all' ? 'active' : ''} onClick={() => setCategory('all')}>
+            Tất cả
+          </button>
+          {(Object.keys(phraseCategoryLabels) as PhraseCategory[]).map((key) => (
+            <button type="button" className={category === key ? 'active' : ''} key={key} onClick={() => setCategory(key)}>
+              {phraseCategoryLabels[key]}
             </button>
-          );
-        })}
+          ))}
+        </div>
+
+        <div className="phrase-list">
+          {visiblePhrases.map((phrase) => {
+            const display = phraseToDisplay(phrase);
+            return (
+              <article className="phrase-card" key={phrase.id}>
+                <button type="button" className="phrase-card-main" onClick={() => onOpenPhrase(display)}>
+                  <span>
+                    <small>{phraseCategoryLabels[phrase.category]} · {phrase.vi}</small>
+                    <strong lang="zh-Hant">{phrase.zh}</strong>
+                    <em>{phrase.romanization}</em>
+                  </span>
+                  <Maximize2 size={17} />
+                </button>
+                <button
+                  type="button"
+                  className="phrase-speak-button"
+                  aria-label={`Đọc câu: ${phrase.vi}`}
+                  onClick={() => onSpeak(phrase.zh)}
+                >
+                  <Volume2 size={18} /> Nghe phát âm
+                </button>
+              </article>
+            );
+          })}
+        </div>
       </section>
 
-      <a className="source-card" href={SOURCE_URL} target="_blank" rel="noreferrer">
-        <span className="source-icon"><Database size={21} /></span>
-        <span>
-          <small>Nguồn lịch trình</small>
-          <strong>Đồng bộ từ Notion</strong>
-          <em>Cập nhật {SYNCED_LABEL} · dữ liệu dự phòng có sẵn offline</em>
-        </span>
-        <ArrowUpRight size={19} />
-      </a>
+      <section className="phrase-emergency-note">
+        <ShieldAlert size={19} />
+        <span><strong>Khi cần khẩn cấp:</strong> gọi 110 (cảnh sát), 119 (cấp cứu/cứu hỏa); thử 112 nếu điện thoại không gọi được hai số trên.</span>
+      </section>
     </div>
   );
 }
+
 
 function RouteScreen({
   selectedDay,
@@ -804,14 +972,18 @@ function RouteScreen({
   expandedId,
   onExpand,
   onDirections,
+  savedIds,
+  onToggleSaved,
 }: {
   selectedDay: number;
   onDayChange: (day: number) => void;
   expandedId?: string;
   onExpand: (id: string) => void;
   onDirections: OpenDirections;
+  savedIds: readonly string[];
+  onToggleSaved: (item: ItineraryItem) => void;
 }) {
-  const routes = itinerary.filter(
+  const routes = primaryItinerary.filter(
     (item) => item.dayNumber === selectedDay && isTransport(item),
   );
 
@@ -827,7 +999,7 @@ function RouteScreen({
 
       <div className="route-note">
         <Info size={17} />
-        <span>Chọn xuất phát từ vị trí hiện tại hoặc điểm đầu đã lưu trong plan.</span>
+        <span>Chọn xuất phát từ vị trí hiện tại hoặc điểm đầu trong plan. Tuyến có rủi ro đã kèm phương án BACKUP ngay bên dưới.</span>
       </div>
 
       <div className="day-pills route-days">
@@ -856,6 +1028,10 @@ function RouteScreen({
                 expanded={expandedId === item.id}
                 onToggle={() => onExpand(item.id)}
                 onDirections={onDirections}
+                backups={getBackupsFor(item)}
+                isSaved={savedIds.includes(item.id)}
+                savedIds={savedIds}
+                onToggleSaved={onToggleSaved}
                 compact
               />
               <button type="button" onClick={() => onDirections(item)} className="route-map-cta">
@@ -865,6 +1041,16 @@ function RouteScreen({
           </div>
         ))}
       </section>
+
+      <a className="source-card" href={SOURCE_URL} target="_blank" rel="noreferrer">
+        <span className="source-icon"><Database size={21} /></span>
+        <span>
+          <small>Nguồn lịch trình</small>
+          <strong>34 mục từ Notion · {backupCount} backup</strong>
+          <em>Cập nhật {SYNCED_LABEL} · app giữ snapshot để xem offline</em>
+        </span>
+        <ArrowUpRight size={19} />
+      </a>
     </div>
   );
 }
@@ -1082,6 +1268,67 @@ function MapChoiceDialog({ item, onClose }: { item: ItineraryItem; onClose: () =
   );
 }
 
+function PhraseDisplayDialog({
+  phrase,
+  onClose,
+  onSpeak,
+}: {
+  phrase: PhraseDisplay;
+  onClose: () => void;
+  onSpeak: (text: string) => void;
+}) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    const previousOverflow = document.body.style.overflow;
+    dialog.showModal();
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      if (dialog.open) dialog.close();
+    };
+  }, [phrase]);
+
+  const closeDialog = () => dialogRef.current?.close();
+
+  return (
+    <dialog
+      className="phrase-display-dialog"
+      ref={dialogRef}
+      aria-labelledby="phrase-display-zh"
+      onClose={onClose}
+      onCancel={(event) => {
+        event.preventDefault();
+        closeDialog();
+      }}
+    >
+      <section className="phrase-display-sheet">
+        <header>
+          <span>給對方看 · ĐƯA NGƯỜI ĐỊA PHƯƠNG XEM</span>
+          <button type="button" onClick={closeDialog} aria-label="Đóng câu nói toàn màn hình">
+            <X size={23} />
+          </button>
+        </header>
+        <div className="phrase-display-content">
+          {phrase.note && <small lang="zh-Hant">{phrase.note}</small>}
+          <h2 id="phrase-display-zh" lang="zh-Hant">{phrase.zh}</h2>
+          {phrase.addressZh && <strong className="phrase-display-address" lang="zh-Hant">{phrase.addressZh}</strong>}
+          <p className="phrase-display-romanization">{phrase.romanization}</p>
+          <p className="phrase-display-vi">{phrase.vi}</p>
+        </div>
+        <footer>
+          <button className="phrase-display-speak" type="button" onClick={() => onSpeak(phrase.speech)}>
+            <Volume2 size={22} /> Đọc bằng tiếng Hoa Đài Loan
+          </button>
+          <button className="phrase-display-close" type="button" onClick={closeDialog}>Đóng</button>
+        </footer>
+      </section>
+    </dialog>
+  );
+}
+
 function BottomNav({ mode, onChange }: { mode: AppMode; onChange: (mode: AppMode) => void }) {
   return (
     <nav className="bottom-nav" aria-label="Điều hướng chính">
@@ -1115,6 +1362,17 @@ function App() {
   const [clock, setClock] = useState(() => new Date());
   const [toast, setToast] = useState<string>();
   const [mapItem, setMapItem] = useState<ItineraryItem>();
+  const [phraseDisplay, setPhraseDisplay] = useState<PhraseDisplay>();
+  const [savedIds, setSavedIds] = useState<string[]>(() => {
+    try {
+      const stored = JSON.parse(window.localStorage.getItem(SAVED_STORAGE_KEY) ?? '[]');
+      return Array.isArray(stored)
+        ? stored.filter((id): id is string => typeof id === 'string' && itinerary.some((item) => item.id === id))
+        : [];
+    } catch {
+      return [];
+    }
+  });
 
   useEffect(() => {
     const timer = window.setInterval(() => setClock(new Date()), 30_000);
@@ -1135,6 +1393,10 @@ function App() {
     return () => window.clearTimeout(timer);
   }, [toast]);
 
+  useEffect(() => {
+    window.localStorage.setItem(SAVED_STORAGE_KEY, JSON.stringify(savedIds));
+  }, [savedIds]);
+
   const effectiveNow = useMemo(
     () => (isPreviewing ? getPreviewInstant(previewDay, previewMinutes) : clock),
     [clock, isPreviewing, previewDay, previewMinutes],
@@ -1145,12 +1407,6 @@ function App() {
 
   const toggleExpanded = (id: string) => {
     setExpandedId((current) => (current === id ? undefined : id));
-  };
-
-  const openDay = (day: number) => {
-    setSelectedDay(day);
-    setMode('day');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const previewDestination = (item: ItineraryItem) => {
@@ -1165,6 +1421,31 @@ function App() {
     previewDestination(item);
     setMode('now');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const toggleSaved = (item: ItineraryItem) => {
+    setSavedIds((current) => {
+      const isRemoving = current.includes(item.id);
+      setToast(isRemoving ? 'Đã bỏ khỏi điểm lưu' : 'Đã lưu để mở nhanh');
+      return isRemoving ? current.filter((id) => id !== item.id) : [...current, item.id];
+    });
+  };
+
+  const speakTraditionalChinese = (text: string) => {
+    if (!('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') {
+      setToast('Điện thoại này chưa hỗ trợ đọc giọng nói');
+      return;
+    }
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'zh-TW';
+    utterance.rate = 0.78;
+    const taiwanVoice = window.speechSynthesis
+      .getVoices()
+      .find((voice) => voice.lang.toLowerCase().replace('_', '-').startsWith('zh-tw'));
+    if (taiwanVoice) utterance.voice = taiwanVoice;
+    window.speechSynthesis.speak(utterance);
+    setToast('Đang đọc bằng giọng zh-TW');
   };
 
   const shareTrip = async () => {
@@ -1215,20 +1496,23 @@ function App() {
             onPreviewDestination={previewDestination}
             onPreviewEnable={() => setIsPreviewing(true)}
             onPreviewReset={() => setIsPreviewing(false)}
+            savedIds={savedIds}
+            onToggleSaved={toggleSaved}
           />
         )}
-        {mode === 'day' && (
-          <DayScreen
-            selectedDay={selectedDay}
-            onDayChange={setSelectedDay}
-            effectiveNow={effectiveNow}
+        {mode === 'saved' && (
+          <SavedScreen
+            savedIds={savedIds}
             expandedId={expandedId}
             onExpand={toggleExpanded}
             onDirections={setMapItem}
+            onToggleSaved={toggleSaved}
             onPreviewItem={previewItem}
           />
         )}
-        {mode === 'trip' && <TripScreen effectiveNow={effectiveNow} onOpenDay={openDay} />}
+        {mode === 'phrases' && (
+          <PhrasesScreen onOpenPhrase={setPhraseDisplay} onSpeak={speakTraditionalChinese} />
+        )}
         {mode === 'route' && (
           <RouteScreen
             selectedDay={selectedDay}
@@ -1236,11 +1520,13 @@ function App() {
             expandedId={expandedId}
             onExpand={toggleExpanded}
             onDirections={setMapItem}
+            savedIds={savedIds}
+            onToggleSaved={toggleSaved}
           />
         )}
       </main>
 
-      <QuickMap item={quickTarget} relation={quickRelation} onDirections={setMapItem} />
+      {mode === 'now' && <QuickMap item={quickTarget} relation={quickRelation} onDirections={setMapItem} />}
       <BottomNav
         mode={mode}
         onChange={(nextMode) => {
@@ -1250,6 +1536,13 @@ function App() {
       />
 
       {mapItem && <MapChoiceDialog item={mapItem} onClose={() => setMapItem(undefined)} />}
+      {phraseDisplay && (
+        <PhraseDisplayDialog
+          phrase={phraseDisplay}
+          onClose={() => setPhraseDisplay(undefined)}
+          onSpeak={speakTraditionalChinese}
+        />
+      )}
 
       {toast && <div className="toast"><CircleDot size={15} /> {toast}</div>}
       <span className="sr-only">Dữ liệu đồng bộ lần cuối {SYNCED_LABEL}</span>
