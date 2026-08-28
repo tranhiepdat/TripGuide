@@ -34,6 +34,13 @@ assert.deepEqual(keywords('bus 260 → đổi bus 108 → tuyến S15'), [
   ['bus 108', 'bus'],
   ['tuyến S15', 'bus'],
 ]);
+assert.deepEqual(keywords('bus R5/Red 5 → bus 108; check ETA 230 hoặc S9'), [
+  ['bus R5', 'bus'],
+  ['Red 5', 'bus'],
+  ['bus 108', 'bus'],
+  ['230', 'bus'],
+  ['S9', 'bus'],
+]);
 assert.deepEqual(keywords('Blue/Bannan Line → Red Line → Green Line → Orange Line → Brown Line → Yellow Line'), [
   ['Blue/Bannan Line', 'line-blue'],
   ['Red Line', 'line-red'],
