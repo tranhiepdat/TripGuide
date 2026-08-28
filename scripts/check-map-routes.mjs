@@ -25,57 +25,41 @@ const {
   itinerary,
 } = dataModule.exports;
 
-assert.equal(itinerary.length, 34, 'Notion snapshot must contain all 34 live rows');
+assert.equal(itinerary.length, 28, 'Notion snapshot must contain all 28 live rows');
 assert.deepEqual([...new Set(itinerary.map((item) => item.dayNumber))], [1, 2, 3, 4]);
 assert.deepEqual(
   [1, 2, 3, 4].map((day) => itinerary.filter((item) => item.dayNumber === day).length),
-  [9, 9, 11, 5],
+  [8, 7, 9, 4],
   'Notion day counts must match the live itinerary',
 );
 assert.equal(new Set(itinerary.map((item) => item.id)).size, itinerary.length, 'Notion row IDs must stay unique');
-
-const primaryItinerary = itinerary.filter((item) => !item.isBackup);
-const backupItinerary = itinerary.filter((item) => item.isBackup);
-assert.equal(primaryItinerary.length, 28, 'The live timeline must keep 28 primary activities');
-assert.equal(backupItinerary.length, 6, 'Notion must expose all six fallback routes');
-assert.ok(
-  backupItinerary.every((backup) =>
-    primaryItinerary.some(
-      (primary) =>
-        primary.dayNumber === backup.dayNumber &&
-        primary.start === backup.start &&
-        primary.end === backup.end,
-    ),
-  ),
-  'Every backup must pair with a primary row using the same time window',
-);
 
 const toMinutes = (clock) => {
   const [hours, minutes] = clock.split(':').map(Number);
   return hours * 60 + minutes;
 };
 
-for (const [index, item] of primaryItinerary.entries()) {
+for (const [index, item] of itinerary.entries()) {
   assert.match(item.start, /^\d{2}:\d{2}$/);
   assert.match(item.end, /^\d{2}:\d{2}$/);
   assert.ok(toMinutes(item.end) > toMinutes(item.start), `${item.title}: end must be after start`);
-  const previous = primaryItinerary[index - 1];
+  const previous = itinerary[index - 1];
   if (previous?.dayNumber === item.dayNumber) {
     assert.ok(toMinutes(previous.end) <= toMinutes(item.start), `${item.title}: schedule must not overlap the previous row`);
   }
 }
 
 assert.deepEqual(
-  primaryItinerary.filter((item) => item.dayNumber === 1).map((item) => [item.start, item.title]),
+  itinerary.filter((item) => item.dayNumber === 1).map((item) => [item.start, item.title]),
   [
     ['07:50', 'Có mặt SGN T2 · check-in China Airlines'],
     ['10:50', 'Bay SGN → TPE · China Airlines CI782'],
     ['15:20', 'Nhập cảnh + lấy hành lý'],
-    ['16:40', '🥇 PRIMARY — Airport MRT A12 → A1 → taxi → Muzik'],
+    ['16:40', 'Airport MRT A12 → A1 → Ximending'],
     ['17:50', 'Check-in Muzik Hotel'],
     ['18:40', 'Taipei 101 Observatory'],
     ['20:15', 'Syntrend Creative Park + Guanghua Digital Plaza'],
-    ['20:50', 'Ăn tối Syntrend B2 → MRT về Ximen'],
+    ['21:30', 'Linjiang / Tonghua Night Market · ăn tối'],
   ],
   'Day 1 order and updated times must match Notion',
 );
@@ -144,11 +128,7 @@ for (const item of itinerary) {
 }
 
 const find = (title) => {
-  const normalizeTitle = (value) => value.replace(/^(?:🥇|🔄)\s*(?:PRIMARY|BACKUP)\s*—\s*/iu, '');
-  const item = itinerary.find((candidate) => {
-    const candidateTitle = normalizeTitle(candidate.title);
-    return candidateTitle === title || candidateTitle.startsWith(title);
-  });
+  const item = itinerary.find((candidate) => candidate.title === title || candidate.title.startsWith(title));
   assert.ok(item, `Representative row is missing: ${title}`);
   return item;
 };
@@ -158,17 +138,17 @@ const expectedModes = new Map([
   ['Airport MRT A12', 'transit'],
   ['Taipei 101 Observatory', 'transit'],
   ['Syntrend Creative Park', 'transit'],
-  ['Ăn tối Syntrend B2', 'transit'],
+  ['Linjiang / Tonghua', 'driving'],
   ['Ximen → Yangmingshan', 'transit'],
   ['Qingtiangang → Shilin', 'transit'],
   ['Wu Jia Beef Noodles', 'driving'],
   ['Dadaocheng sunset', 'driving'],
-  ['Ximen → Holy Family', 'transit'],
-  ['Daan/Qingtian → Longshan', 'driving'],
+  ['Dậy sớm', 'driving'],
+  ['Daan Forest Park', 'driving'],
   ['Longshan → Taipei Main', 'transit'],
   ['Ăn nhẹ →', 'walking'],
   ['Raohe Night Market', 'transit'],
-  ['Muzik → taxi A1', 'transit'],
+  ['Ximen → A1', 'transit'],
 ]);
 
 for (const [title, mode] of expectedModes) {
@@ -213,17 +193,12 @@ const nextLegMention = find('Qingtiangang Grassland');
 assert.equal(getPlannedOrigin(nextLegMention), undefined);
 assert.equal(new URL(getDirectionsUrl(nextLegMention, 'current')).searchParams.get('travelmode'), null);
 
-const ambiguousStop = find('Daan/Qingtian → Longshan');
+const ambiguousStop = find('Daan Forest Park /');
 assert.match(getPlanDirectionsIssue(ambiguousStop), /HOẶC/);
 assert.equal(getDirectionsUrl(ambiguousStop, 'plan'), undefined);
 const ambiguousCurrent = new URL(getDirectionsUrl(ambiguousStop, 'current'));
 assert.match(ambiguousCurrent.searchParams.get('destination'), /^Bangka Lungshan Temple/);
 assert.equal(ambiguousCurrent.searchParams.has('waypoints'), false);
-
-const optionABackup = find('Daan/Dongmen → Longshan');
-assert.match(getPlannedOrigin(optionABackup), /^Daan Park Station/);
-assert.match(getMapDestination(optionABackup), /^Longshan Temple Station/);
-assert.equal(new URL(getDirectionsUrl(optionABackup, 'plan')).searchParams.get('travelmode'), 'transit');
 
 const guidedTour = find('Tour Shifen');
 assert.match(getDirectionsIssue(guidedTour), /voucher/);

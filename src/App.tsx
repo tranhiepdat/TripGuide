@@ -50,6 +50,7 @@ import {
   type ItineraryItem,
 } from './data/itinerary';
 import {
+  moneyNumbers,
   phraseCategoryLabels,
   taxiDestinations,
   travelPhrases,
@@ -77,6 +78,7 @@ const PREVIEW_SLIDER_STEP_MINUTES = 5;
 
 const SOURCE_URL =
   'https://app.notion.com/p/aef8fa576f704484bc66494b64004474?v=3afe8e18611981c79e78000c06433c8e';
+const GOOGLE_TRANSLATE_URL = 'https://translate.google.com/?sl=vi&tl=zh-TW&op=translate';
 const SAVED_STORAGE_KEY = 'tripguide-saved-destinations-v1';
 const primaryItinerary = itinerary.filter((item) => !item.isBackup);
 const backupCount = itinerary.length - primaryItinerary.length;
@@ -736,6 +738,7 @@ type PhraseDisplay = {
   speech: string;
   note?: string;
   addressZh?: string;
+  addressEn?: string;
 };
 
 function SavedScreen({
@@ -745,6 +748,8 @@ function SavedScreen({
   onDirections,
   onToggleSaved,
   onPreviewItem,
+  onOpenPhrase,
+  onSpeak,
 }: {
   savedIds: readonly string[];
   expandedId?: string;
@@ -752,6 +757,8 @@ function SavedScreen({
   onDirections: OpenDirections;
   onToggleSaved: (item: ItineraryItem) => void;
   onPreviewItem: (item: ItineraryItem) => void;
+  onOpenPhrase: (phrase: PhraseDisplay) => void;
+  onSpeak: (text: string) => void;
 }) {
   const savedItems = itinerary.filter((item) => savedIds.includes(item.id));
   const savedDays = [...new Set(savedItems.map((item) => item.dayNumber))];
@@ -773,6 +780,8 @@ function SavedScreen({
           <p>Mở một mục trong tab Tuyến rồi bấm “Lưu điểm”. Danh sách này vẫn còn khi bạn mở app lại.</p>
         </div>
       </section>
+
+      <TaxiAddressSection onOpenPhrase={onOpenPhrase} onSpeak={onSpeak} />
 
       {savedItems.length === 0 ? (
         <section className="empty-saved">
@@ -832,14 +841,63 @@ function taxiToDisplay(destination: TaxiDestination): PhraseDisplay {
     zh: `請帶我去${destination.nameZh}，謝謝。`,
     romanization: destination.romanization,
     speech: destination.speech,
-    note: destination.nameZh,
+    note: destination.nameEn,
     addressZh: destination.addressZh,
+    addressEn: destination.addressEn,
   };
 }
 
 function getTaxiMapUrl(destination: TaxiDestination) {
   const params = new URLSearchParams({ api: '1', query: destination.mapQuery });
   return `https://www.google.com/maps/search/?${params.toString()}`;
+}
+
+function TaxiAddressSection({
+  onOpenPhrase,
+  onSpeak,
+}: {
+  onOpenPhrase: (phrase: PhraseDisplay) => void;
+  onSpeak: (text: string) => void;
+}) {
+  return (
+    <section className="taxi-section">
+      <div className="section-heading slim">
+        <div>
+          <span className="section-kicker">Đưa tài xế xem · 中文 / English</span>
+          <h2>Địa chỉ taxi chính xác</h2>
+        </div>
+        <span className="item-count">{taxiDestinations.length} địa chỉ</span>
+      </div>
+      <div className="taxi-destination-list">
+        {taxiDestinations.map((destination) => {
+          const display = taxiToDisplay(destination);
+          return (
+            <article className="taxi-destination-card" key={destination.id}>
+              <button type="button" className="taxi-destination-main" onClick={() => onOpenPhrase(display)}>
+                <span className="taxi-index">計</span>
+                <span>
+                  <small>{destination.nameVi}</small>
+                  <strong lang="zh-Hant">{destination.nameZh}</strong>
+                  <span className="taxi-name-en" lang="en">{destination.nameEn}</span>
+                  <em lang="zh-Hant">{destination.addressZh}</em>
+                  <span className="taxi-address-en" lang="en">{destination.addressEn}</span>
+                </span>
+                <Maximize2 size={17} />
+              </button>
+              <div className="taxi-destination-actions">
+                <button type="button" onClick={() => onSpeak(destination.speech)}>
+                  <Volume2 size={16} /> Đọc cho tài xế
+                </button>
+                <a href={getTaxiMapUrl(destination)} target="_blank" rel="noreferrer">
+                  <Map size={16} /> Bản đồ
+                </a>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    </section>
+  );
 }
 
 function PhrasesScreen({
@@ -874,72 +932,83 @@ function PhrasesScreen({
         <Volume2 size={30} />
       </section>
 
-      <section className="taxi-section">
-        <div className="section-heading slim">
-          <div>
-            <span className="section-kicker">Đưa tài xế xem</span>
-            <h2>Địa chỉ taxi chính xác</h2>
-          </div>
-          <Navigation size={21} />
-        </div>
-        <div className="taxi-destination-list">
-          {taxiDestinations.map((destination) => {
-            const display = taxiToDisplay(destination);
-            return (
-              <article className="taxi-destination-card" key={destination.id}>
-                <button type="button" className="taxi-destination-main" onClick={() => onOpenPhrase(display)}>
-                  <span className="taxi-index">計</span>
-                  <span>
-                    <small>{destination.nameVi}</small>
-                    <strong lang="zh-Hant">{destination.nameZh}</strong>
-                    <em lang="zh-Hant">{destination.addressZh}</em>
-                  </span>
-                  <Maximize2 size={17} />
-                </button>
-                <div className="taxi-destination-actions">
-                  <button type="button" onClick={() => onSpeak(destination.speech)}>
-                    <Volume2 size={16} /> Đọc
-                  </button>
-                  <a href={getTaxiMapUrl(destination)} target="_blank" rel="noreferrer">
-                    <Map size={16} /> Bản đồ
-                  </a>
-                </div>
-              </article>
-            );
-          })}
-        </div>
-      </section>
+      <a className="translate-quick-link" href={GOOGLE_TRANSLATE_URL} target="_blank" rel="noreferrer">
+        <span className="translate-quick-icon"><Languages size={21} /></span>
+        <span>
+          <strong>Mở nhanh Google Dịch</strong>
+          <small>Đã chọn Việt → Hoa phồn thể</small>
+        </span>
+        <ArrowUpRight size={19} />
+      </a>
 
       <section className="phrasebook-section">
         <div className="section-heading">
           <div>
             <span className="section-kicker">Dùng nhanh</span>
-            <h2>Câu thiết yếu</h2>
+            <h2>Câu học nhanh</h2>
           </div>
           <span className="item-count">{visiblePhrases.length} câu</span>
         </div>
 
         <div className="phrase-filter" role="group" aria-label="Lọc câu nói">
-          <button type="button" className={category === 'all' ? 'active' : ''} onClick={() => setCategory('all')}>
+          <button
+            type="button"
+            className={`phrase-filter-button phrase-filter-button--all${category === 'all' ? ' active' : ''}`}
+            aria-pressed={category === 'all'}
+            onClick={() => setCategory('all')}
+          >
             Tất cả
           </button>
           {(Object.keys(phraseCategoryLabels) as PhraseCategory[]).map((key) => (
-            <button type="button" className={category === key ? 'active' : ''} key={key} onClick={() => setCategory(key)}>
+            <button
+              type="button"
+              className={`phrase-filter-button phrase-filter-button--${key}${category === key ? ' active' : ''}`}
+              aria-pressed={category === key}
+              key={key}
+              onClick={() => setCategory(key)}
+            >
               {phraseCategoryLabels[key]}
             </button>
           ))}
         </div>
 
+        {category === 'money' && (
+          <section className="money-guide" aria-labelledby="money-guide-title">
+            <header>
+              <span>NT$ · 新台幣</span>
+              <h3 id="money-guide-title">Nói giá = số + 塊</h3>
+              <p><strong>塊 (kuài)</strong> dùng hằng ngày; <strong>元 (yuán)</strong> dùng khi viết hoặc nói trang trọng.</p>
+            </header>
+            <div className="money-number-grid" aria-label="Bảng số tiếng Hoa">
+              {moneyNumbers.map((number) => (
+                <div className="money-number" key={number.value}>
+                  <small>{number.value}</small>
+                  <strong lang="zh-Hant">{number.zh}</strong>
+                  <em>{number.romanization}</em>
+                </div>
+              ))}
+            </div>
+            <div className="money-example">
+              <small>Ghép thử</small>
+              <strong><span>NT$230</span><span>→</span><span lang="zh-Hant">兩百三十塊</span></strong>
+              <em>Liǎngbǎi sānshí kuài</em>
+            </div>
+            <p className="money-two-tip"><strong>Mẹo số 2:</strong> dùng 兩 (liǎng) trước 百/千; dùng 二 (èr) khi đọc riêng hoặc trong hàng chục.</p>
+          </section>
+        )}
+
         <div className="phrase-list">
           {visiblePhrases.map((phrase) => {
             const display = phraseToDisplay(phrase);
             return (
-              <article className="phrase-card" key={phrase.id}>
+              <article className={`phrase-card phrase-tone--${phrase.category}`} key={phrase.id}>
                 <button type="button" className="phrase-card-main" onClick={() => onOpenPhrase(display)}>
                   <span>
-                    <small>{phraseCategoryLabels[phrase.category]} · {phrase.vi}</small>
+                    <span className="phrase-category-badge">{phraseCategoryLabels[phrase.category]}</span>
+                    <small>{phrase.vi}</small>
                     <strong lang="zh-Hant">{phrase.zh}</strong>
                     <em>{phrase.romanization}</em>
+                    {phrase.note && <span className="phrase-card-note">{phrase.note}</span>}
                   </span>
                   <Maximize2 size={17} />
                 </button>
@@ -1312,9 +1381,10 @@ function PhraseDisplayDialog({
           </button>
         </header>
         <div className="phrase-display-content">
-          {phrase.note && <small lang="zh-Hant">{phrase.note}</small>}
+          {phrase.note && <small>{phrase.note}</small>}
           <h2 id="phrase-display-zh" lang="zh-Hant">{phrase.zh}</h2>
           {phrase.addressZh && <strong className="phrase-display-address" lang="zh-Hant">{phrase.addressZh}</strong>}
+          {phrase.addressEn && <p className="phrase-display-address-en" lang="en">{phrase.addressEn}</p>}
           <p className="phrase-display-romanization">{phrase.romanization}</p>
           <p className="phrase-display-vi">{phrase.vi}</p>
         </div>
@@ -1508,6 +1578,8 @@ function App() {
             onDirections={setMapItem}
             onToggleSaved={toggleSaved}
             onPreviewItem={previewItem}
+            onOpenPhrase={setPhraseDisplay}
+            onSpeak={speakTraditionalChinese}
           />
         )}
         {mode === 'phrases' && (

@@ -139,7 +139,6 @@ function normalizePages(pages) {
     const dayLabel = select(properties, 'Ngày');
     const day = parseDay(dayLabel);
     const time = parseTime(richText(properties, 'Time'));
-    const activityTitle = title(properties, 'Hoạt động');
     return {
       id: page.id,
       ...day,
@@ -147,28 +146,19 @@ function normalizePages(pages) {
       start: time.start,
       end: time.end,
       timeLabel: time.timeLabel,
-      title: activityTitle,
+      title: title(properties, 'Hoạt động'),
       area: richText(properties, 'Khu vực'),
       categories: multiSelect(properties, 'Loại'),
       note: richText(properties, 'Ghi chú'),
       mapSearch: richText(properties, '🔎 Map / Transit'),
       notionUrl: page.url,
-      isBackup: /\bBACKUP\b/i.test(`${time.timeLabel} ${activityTitle}`),
     };
   });
 
-  rows.sort(
-    (a, b) =>
-      a.dayNumber - b.dayNumber ||
-      a.start.localeCompare(b.start) ||
-      Number(a.isBackup) - Number(b.isBackup) ||
-      a.title.localeCompare(b.title),
-  );
+  rows.sort((a, b) => a.dayNumber - b.dayNumber || a.start.localeCompare(b.start));
   return rows.map((row, index) => {
-    const next = rows
-      .slice(index + 1)
-      .find((candidate) => candidate.dayNumber === row.dayNumber && candidate.start !== row.start);
-    const inferredEnd = next?.start ?? addMinutes(row.start, 60);
+    const next = rows[index + 1];
+    const inferredEnd = next?.dayNumber === row.dayNumber ? next.start : addMinutes(row.start, 60);
     return { ...row, end: row.end ?? inferredEnd };
   });
 }

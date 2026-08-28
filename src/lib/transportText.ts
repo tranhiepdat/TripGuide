@@ -74,14 +74,6 @@ const highlightRules: readonly HighlightRule[] = [
     pattern: bounded('(?:bus|xe\\s+buýt|tuyến)\\s*(?:no\\.?\\s*)?(?:S?\\d{1,3}|R\\d{1,2}|小\\d{1,2})'),
   },
   {
-    kind: 'bus',
-    pattern: bounded('Red\\s+\\d{1,2}|(?:R|S)\\d{1,2}|小\\d{1,2}'),
-  },
-  {
-    kind: 'bus',
-    pattern: bounded('\\d{2,3}(?=\\s*(?:hoặc|or|/)\\s*(?:R|S|小)\\d{1,2})'),
-  },
-  {
     kind: 'taxi',
     pattern: bounded('taxi\\s*\\/\\s*Uber'),
   },
