@@ -21,9 +21,16 @@ new Function('module', 'exports', 'require', compiled)(
 const { moneyNumbers, phraseCategoryLabels, taxiDestinations, travelPhrases } = dataModule.exports;
 const categories = Object.keys(phraseCategoryLabels);
 
-assert.deepEqual(categories, ['essential', 'transport', 'food', 'money', 'help']);
+assert.deepEqual(categories, ['polite', 'essential', 'transport', 'food', 'money', 'help']);
 assert.equal(new Set(travelPhrases.map((phrase) => phrase.id)).size, travelPhrases.length, 'Phrase IDs must be unique');
 assert.ok(travelPhrases.every((phrase) => categories.includes(phrase.category)), 'Every phrase needs a known category');
+const politePhrases = travelPhrases.filter((phrase) => phrase.category === 'polite');
+assert.equal(phraseCategoryLabels.polite, 'Lịch sự');
+assert.equal(politePhrases.length, 10, 'Polite tag must keep the compact ten-phrase starter set');
+for (const id of ['hello', 'thank-you', 'excuse-me', 'menu-please', 'goodbye']) {
+  assert.ok(politePhrases.some((phrase) => phrase.id === id), `Missing polite phrase: ${id}`);
+}
+assert.equal(politePhrases.find((phrase) => phrase.id === 'menu-please')?.zh, '請給我菜單。');
 assert.ok(
   travelPhrases.every((phrase) => phrase.vi.length <= 30),
   'Memorization prompts must stay at 30 Vietnamese characters or fewer',

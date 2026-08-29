@@ -1166,6 +1166,13 @@ main {
   content: '';
 }
 
+.phrase-tone--polite,
+.phrase-filter-button--polite {
+  --phrase-accent: #9a6418;
+  --phrase-tint: #fff4d7;
+  --phrase-border: #e9cf91;
+}
+
 .phrase-tone--essential,
 .phrase-filter-button--essential {
   --phrase-accent: #bd5c2d;
