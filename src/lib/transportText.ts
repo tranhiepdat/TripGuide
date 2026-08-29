@@ -6,6 +6,7 @@ export type TransportHighlightKind =
   | 'line-orange'
   | 'line-brown'
   | 'line-yellow'
+  | 'station'
   | 'bus'
   | 'taxi'
   | 'walk'
@@ -30,6 +31,7 @@ type HighlightCandidate = {
 };
 
 const bounded = (source: string) => new RegExp(`(?:${source})`, 'giu');
+const stationPattern = (source: string) => new RegExp(`(?:${source})`, 'gu');
 const letterOrNumber = /[\p{L}\p{N}]/u;
 
 function touchesWordCharacter(value: string, start: number, end: number): boolean {
@@ -68,6 +70,26 @@ const highlightRules: readonly HighlightRule[] = [
   {
     kind: 'line-yellow',
     pattern: bounded('(?:Yellow|Circular)\\s+Line|tuyến\\s+vàng'),
+  },
+  {
+    kind: 'station',
+    pattern: stationPattern(
+      '(?:MRT\\s+)?(?:[\\p{Lu}\\p{N}][\\p{L}\\p{N}\'’/-]*\\s+){0,6}[\\p{Lu}\\p{N}][\\p{L}\\p{N}\'’/-]*\\s+(?:Station|Bus\\s+Terminal|Service\\s+Center)(?:\\s*\\((?:G|R|O|BL|BR|Y)\\d{2}(?:\\/(?:G|R|O|BL|BR|Y)\\d{2})*\\))?',
+    ),
+  },
+  {
+    kind: 'station',
+    pattern: stationPattern(
+      '(?:[\\p{Lu}\\p{N}][\\p{L}\\p{N}\'’/-]*\\s+){0,5}[\\p{Lu}\\p{N}][\\p{L}\\p{N}\'’/-]*\\s*\\((?:G|R|O|BL|BR|Y)\\d{2}(?:\\/(?:G|R|O|BL|BR|Y)\\d{2})*\\)',
+    ),
+  },
+  {
+    kind: 'station',
+    pattern: stationPattern('(?:G|R|O|BL|BR|Y)\\d{2}(?:\\/(?:G|R|O|BL|BR|Y)\\d{2})*'),
+  },
+  {
+    kind: 'station',
+    pattern: stationPattern('[\\p{Script=Han}]{2,16}(?:站(?:[（(][\\p{Script=Han}]{1,8}[)）])?|總站|服務站|市場)'),
   },
   {
     kind: 'bus',
@@ -120,8 +142,9 @@ export function tokenizeTransportText(value: string): readonly TransportTextSegm
     for (const match of value.matchAll(rule.pattern)) {
       if (match.index === undefined || !match[0]) continue;
       if (touchesWordCharacter(value, match.index, match.index + match[0].length)) continue;
+      const stationLead = rule.kind === 'station' ? match[0].match(/^(?:Tại|Từ|Xuống|Lên|Đến)\s+/u)?.[0] : undefined;
       candidates.push({
-        start: match.index,
+        start: match.index + (stationLead?.length ?? 0),
         end: match.index + match[0].length,
         kind: rule.kind,
         priority,
@@ -157,3 +180,4 @@ export function tokenizeTransportText(value: string): readonly TransportTextSegm
 
   return segments;
 }
+
