@@ -74,8 +74,8 @@ assert.deepEqual(
     ['16:40', '🥇 PRIMARY — Airport MRT A12 → A1 → taxi → Muzik'],
     ['17:50', 'Check-in Muzik Hotel'],
     ['18:40', 'Taipei 101 Observatory'],
-    ['20:15', 'Syntrend Creative Park + Guanghua Digital Plaza'],
-    ['20:50', 'Ăn tối Syntrend B2 → MRT về Ximen'],
+    ['20:05', 'Syntrend Creative Park'],
+    ['20:43', 'Syntrend → bus 202 → Ximen → ngủ sớm'],
   ],
   'Day 1 order and updated times must match Notion',
 );
@@ -85,10 +85,11 @@ assert.deepEqual(
   blockedTitles,
   [
     'Bay SGN → TPE · China Airlines CI782',
+    'Ăn nhẹ → tới meeting point tour',
     'Tour Shifen → Jiufen · chiều đến tối',
     'Bay TPE → SGN · China Airlines CI783',
   ],
-  'Only flights and the booked tour overview may block road directions',
+  'Flights and tour legs with an unconfirmed voucher meeting point must block road directions',
 );
 
 for (const item of itinerary) {
@@ -158,16 +159,15 @@ const expectedModes = new Map([
   ['Airport MRT A12', 'transit'],
   ['Taipei 101 Observatory', 'transit'],
   ['Syntrend Creative Park', 'transit'],
-  ['Ăn tối Syntrend B2', 'transit'],
+  ['Syntrend → bus 202', 'transit'],
   ['Ximen → Yangmingshan', 'transit'],
   ['Qingtiangang → Shilin', 'transit'],
-  ['Wu Jia Beef Noodles', 'driving'],
-  ['Dadaocheng sunset', 'driving'],
-  ['Ximen → Holy Family', 'transit'],
-  ['Daan/Qingtian → Longshan', 'driving'],
+  ['Yixin Dumpling & Beef Noodle', 'transit'],
+  ['Dadaocheng sunset', 'transit'],
+  ['Muzik → bus 235', 'transit'],
+  ['Holy Family → bus 568', 'transit'],
   ['Longshan → Taipei Main', 'transit'],
-  ['Ăn nhẹ →', 'walking'],
-  ['Raohe Night Market', 'transit'],
+  ['Raohe Night Market', null],
   ['Muzik → taxi A1', 'transit'],
 ]);
 
@@ -188,22 +188,24 @@ assert.match(syntrendPlan.searchParams.get('origin'), /^Taipei 101 Observatory/)
 assert.match(syntrendPlan.searchParams.get('destination'), /^Syntrend Creative Park, No\. 2/);
 assert.equal(syntrendPlan.searchParams.has('waypoints'), false);
 
-const taxiLeg = find('Wu Jia Beef Noodles');
-assert.match(getMapDestination(taxiLeg), /^The Gaia Hotel, No\. 1, Qiyan Rd\./);
-assert.match(getPlannedOrigin(taxiLeg), /^Wu Jia Beef Noodles .*No\. 224, Sec\. 1/);
+const shuttleLeg = find('Yixin Dumpling & Beef Noodle');
+assert.match(getMapDestination(shuttleLeg), /^The Gaia Hotel Taipei, No\. 1 Qiyan Road/);
+assert.match(getPlannedOrigin(shuttleLeg), /^Beitou Station Exit 1/);
 
-const multiStopTaxi = find('Dadaocheng sunset');
-const multiStopTaxiPlan = new URL(getDirectionsUrl(multiStopTaxi, 'plan'));
-assert.match(multiStopTaxiPlan.searchParams.get('waypoints'), /^Dadaocheng Wharf/);
+const multiStopTransit = find('Dadaocheng sunset');
+const multiStopTransitPlan = new URL(getDirectionsUrl(multiStopTransit, 'plan'));
+assert.match(multiStopTransitPlan.searchParams.get('origin'), /^The Gaia Hotel Taipei/);
+assert.match(multiStopTransitPlan.searchParams.get('destination'), /^Ningxia Night Market/);
+assert.equal(multiStopTransitPlan.searchParams.has('waypoints'), false);
 
 const meetingPoint = find('Ăn nhẹ →');
-assert.equal(getDirectionsIssue(meetingPoint), undefined, 'The updated meeting point is no longer TBD');
-assert.match(getMapDestination(meetingPoint), /^Taipei Main Station East Gate 3/);
-assert.match(new URL(getDirectionsUrl(meetingPoint, 'plan')).searchParams.get('waypoints'), /^Dadaocheng Braised Pork Rice/);
+assert.match(getDirectionsIssue(meetingPoint), /voucher/, 'The meeting point must stay blocked until the voucher is confirmed');
+assert.equal(getDirectionsUrl(meetingPoint, 'plan'), undefined);
+assert.match(new URL(getGoogleMapsUrl(meetingPoint)).searchParams.get('query'), /^Taipei City Mall/);
 
 const raohe = find('Raohe Night Market');
-assert.match(getMapDestination(raohe), /^Raohe Night Market/);
-assert.match(getPlannedOrigin(raohe), /^Taipei Main Station/);
+assert.match(getMapDestination(raohe), /^Raohe Street Night Market/);
+assert.equal(getPlannedOrigin(raohe), undefined);
 
 const samePlace = find('Xiaoyoukeng ·');
 assert.equal(getPlannedOrigin(samePlace), undefined);
@@ -213,17 +215,10 @@ const nextLegMention = find('Qingtiangang Grassland');
 assert.equal(getPlannedOrigin(nextLegMention), undefined);
 assert.equal(new URL(getDirectionsUrl(nextLegMention, 'current')).searchParams.get('travelmode'), null);
 
-const ambiguousStop = find('Daan/Qingtian → Longshan');
-assert.match(getPlanDirectionsIssue(ambiguousStop), /HOẶC/);
-assert.equal(getDirectionsUrl(ambiguousStop, 'plan'), undefined);
-const ambiguousCurrent = new URL(getDirectionsUrl(ambiguousStop, 'current'));
-assert.match(ambiguousCurrent.searchParams.get('destination'), /^Bangka Lungshan Temple/);
-assert.equal(ambiguousCurrent.searchParams.has('waypoints'), false);
-
-const optionABackup = find('Daan/Dongmen → Longshan');
-assert.match(getPlannedOrigin(optionABackup), /^Daan Park Station/);
-assert.match(getMapDestination(optionABackup), /^Longshan Temple Station/);
-assert.equal(new URL(getDirectionsUrl(optionABackup, 'plan')).searchParams.get('travelmode'), 'transit');
+const busToLongshan = find('Holy Family → bus 568');
+assert.match(getPlannedOrigin(busToLongshan), /^Holy Family Catholic Church/);
+assert.match(getMapDestination(busToLongshan), /^Longshan Temple/);
+assert.equal(new URL(getDirectionsUrl(busToLongshan, 'plan')).searchParams.get('travelmode'), 'transit');
 
 const guidedTour = find('Tour Shifen');
 assert.match(getDirectionsIssue(guidedTour), /voucher/);
@@ -236,9 +231,9 @@ for (const flightTitle of ['Bay SGN → TPE', 'Bay TPE → SGN']) {
 }
 
 const holyFamily = find('Holy Family Catholic Church ·');
-assert.match(getMapDestination(holyFamily), /No\. 50, Sec\. 2, Xinsheng S\. Rd\./);
+assert.match(getMapDestination(holyFamily), /^Holy Family Catholic Church, Da'an District/);
 const cityMall = find('Taipei City Mall ·');
-assert.match(getMapDestination(cityMall), /No\. 100, Section 1, Shimin Blvd\./);
+assert.match(getMapDestination(cityMall), /^Taipei City Mall, Zhongzheng District/);
 
 const supplementalFixture = {
   ...syntrend,
@@ -251,3 +246,4 @@ assert.equal(supplementalFixturePlan.searchParams.get('travelmode'), 'transit');
 assert.equal(supplementalFixturePlan.searchParams.has('waypoints'), false);
 
 console.log(`Map route checks passed for ${itinerary.length} itinerary items.`);
+
