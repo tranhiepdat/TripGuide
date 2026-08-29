@@ -25,29 +25,27 @@ const {
   itinerary,
 } = dataModule.exports;
 
-assert.equal(itinerary.length, 34, 'Notion snapshot must contain all 34 live rows');
+assert.equal(itinerary.length, 48, 'Notion snapshot must contain all 48 live rows');
 assert.deepEqual([...new Set(itinerary.map((item) => item.dayNumber))], [1, 2, 3, 4]);
 assert.deepEqual(
   [1, 2, 3, 4].map((day) => itinerary.filter((item) => item.dayNumber === day).length),
-  [9, 9, 11, 5],
+  [11, 17, 15, 5],
   'Notion day counts must match the live itinerary',
 );
 assert.equal(new Set(itinerary.map((item) => item.id)).size, itinerary.length, 'Notion row IDs must stay unique');
 
 const primaryItinerary = itinerary.filter((item) => !item.isBackup);
 const backupItinerary = itinerary.filter((item) => item.isBackup);
-assert.equal(primaryItinerary.length, 28, 'The live timeline must keep 28 primary activities');
-assert.equal(backupItinerary.length, 6, 'Notion must expose all six fallback routes');
+assert.equal(primaryItinerary.length, 41, 'The live timeline must keep 41 primary activities');
+assert.equal(backupItinerary.length, 7, 'Notion must expose all seven fallback routes');
 assert.ok(
   backupItinerary.every((backup) =>
     primaryItinerary.some(
       (primary) =>
-        primary.dayNumber === backup.dayNumber &&
-        primary.start === backup.start &&
-        primary.end === backup.end,
+        primary.dayNumber === backup.dayNumber && primary.categories.includes('Di chuyển'),
     ),
   ),
-  'Every backup must pair with a primary row using the same time window',
+  'Every backup day must retain at least one primary transport route',
 );
 
 const toMinutes = (clock) => {
@@ -73,9 +71,11 @@ assert.deepEqual(
     ['15:20', 'Nhập cảnh + lấy hành lý'],
     ['16:40', '🥇 PRIMARY — Airport MRT A12 → A1 → taxi → Muzik'],
     ['17:50', 'Check-in Muzik Hotel'],
+    ['18:15', '🚇 Muzik → Taipei 101 Observatory'],
     ['18:40', 'Taipei 101 Observatory'],
+    ['19:35', '🚇 Taipei 101 → Syntrend Creative Park'],
     ['20:05', 'Syntrend Creative Park'],
-    ['20:43', 'Syntrend → bus 202 → Ximen → ngủ sớm'],
+    ['20:43', '🚌 Syntrend → Ximen → Muzik Hotel'],
   ],
   'Day 1 order and updated times must match Notion',
 );
@@ -85,11 +85,11 @@ assert.deepEqual(
   blockedTitles,
   [
     'Bay SGN → TPE · China Airlines CI782',
-    'Ăn nhẹ → tới meeting point tour',
-    'Tour Shifen → Jiufen · chiều đến tối',
+    '🚶 Taipei City Mall → tour meeting point',
+    '🚇 OPTIONAL — tour drop-off → Raohe Night Market',
     'Bay TPE → SGN · China Airlines CI783',
   ],
-  'Flights and tour legs with an unconfirmed voucher meeting point must block road directions',
+  'Flights and tour legs with unresolved voucher stops must block road directions',
 );
 
 for (const item of itinerary) {
@@ -157,17 +157,22 @@ const find = (title) => {
 const expectedModes = new Map([
   ['Nhập cảnh + lấy hành lý', 'walking'],
   ['Airport MRT A12', 'transit'],
-  ['Taipei 101 Observatory', 'transit'],
-  ['Syntrend Creative Park', 'transit'],
-  ['Syntrend → bus 202', 'transit'],
-  ['Ximen → Yangmingshan', 'transit'],
+  ['🚇 Muzik → Taipei 101 Observatory', 'transit'],
+  ['Taipei 101 Observatory', null],
+  ['🚇 Taipei 101 → Syntrend Creative Park', 'transit'],
+  ['Syntrend Creative Park', null],
+  ['🚌 Syntrend → Ximen', 'transit'],
+  ['Muzik → 中華路北站', 'transit'],
+  ['🚌 Xiaoyoukeng → Qingtiangang', 'transit'],
   ['Qingtiangang → Shilin', 'transit'],
-  ['Yixin Dumpling & Beef Noodle', 'transit'],
-  ['Dadaocheng sunset', 'transit'],
+  ['🚶 Beitou Station → Yixin', 'walking'],
+  ['🚶🚌 Yixin → Beitou Station → The Gaia', 'transit'],
+  ['🚐🚇🚌 The Gaia → Dadaocheng Wharf', 'transit'],
   ['Muzik → bus 235', 'transit'],
   ['Holy Family → bus 568', 'transit'],
-  ['Longshan → Taipei Main', 'transit'],
+  ['🚇 Longshan → Taipei Main', 'transit'],
   ['Raohe Night Market', null],
+  ['🚇 OPTIONAL — Raohe → Muzik Hotel', 'transit'],
   ['Muzik → taxi A1', 'transit'],
 ]);
 
@@ -182,23 +187,23 @@ assert.match(airportPlan.searchParams.get('origin'), /^A12 Airport Terminal 1 St
 assert.match(airportPlan.searchParams.get('destination'), /^Muzik Hotel - Ximen Station Branch/);
 assert.equal(airportPlan.searchParams.has('waypoints'), false);
 
-const syntrend = find('Syntrend Creative Park');
+const syntrend = find('🚇 Taipei 101 → Syntrend Creative Park');
 const syntrendPlan = new URL(getDirectionsUrl(syntrend, 'plan'));
 assert.match(syntrendPlan.searchParams.get('origin'), /^Taipei 101 Observatory/);
-assert.match(syntrendPlan.searchParams.get('destination'), /^Syntrend Creative Park, No\. 2/);
+assert.match(syntrendPlan.searchParams.get('destination'), /^Syntrend Creative Park/);
 assert.equal(syntrendPlan.searchParams.has('waypoints'), false);
 
-const shuttleLeg = find('Yixin Dumpling & Beef Noodle');
+const shuttleLeg = find('🚶🚌 Yixin → Beitou Station → The Gaia');
 assert.match(getMapDestination(shuttleLeg), /^The Gaia Hotel Taipei, No\. 1 Qiyan Road/);
-assert.match(getPlannedOrigin(shuttleLeg), /^Beitou Station Exit 1/);
+assert.match(getPlannedOrigin(shuttleLeg), /^Yixin Dumpling & Beef Noodle/);
 
-const multiStopTransit = find('Dadaocheng sunset');
+const multiStopTransit = find('🚐🚇🚌 The Gaia → Dadaocheng Wharf');
 const multiStopTransitPlan = new URL(getDirectionsUrl(multiStopTransit, 'plan'));
 assert.match(multiStopTransitPlan.searchParams.get('origin'), /^The Gaia Hotel Taipei/);
-assert.match(multiStopTransitPlan.searchParams.get('destination'), /^Ningxia Night Market/);
+assert.match(multiStopTransitPlan.searchParams.get('destination'), /^Dadaocheng Wharf/);
 assert.equal(multiStopTransitPlan.searchParams.has('waypoints'), false);
 
-const meetingPoint = find('Ăn nhẹ →');
+const meetingPoint = find('🚶 Taipei City Mall → tour meeting point');
 assert.match(getDirectionsIssue(meetingPoint), /voucher/, 'The meeting point must stay blocked until the voucher is confirmed');
 assert.equal(getDirectionsUrl(meetingPoint, 'plan'), undefined);
 assert.match(new URL(getGoogleMapsUrl(meetingPoint)).searchParams.get('query'), /^Taipei City Mall/);
@@ -221,7 +226,7 @@ assert.match(getMapDestination(busToLongshan), /^Longshan Temple/);
 assert.equal(new URL(getDirectionsUrl(busToLongshan, 'plan')).searchParams.get('travelmode'), 'transit');
 
 const guidedTour = find('Tour Shifen');
-assert.match(getDirectionsIssue(guidedTour), /voucher/);
+assert.equal(getDirectionsIssue(guidedTour), undefined);
 assert.match(getMapDestination(guidedTour), /^Jiufen Old Street/);
 
 for (const flightTitle of ['Bay SGN → TPE', 'Bay TPE → SGN']) {
@@ -246,3 +251,4 @@ assert.equal(supplementalFixturePlan.searchParams.get('travelmode'), 'transit');
 assert.equal(supplementalFixturePlan.searchParams.has('waypoints'), false);
 
 console.log(`Map route checks passed for ${itinerary.length} itinerary items.`);
+

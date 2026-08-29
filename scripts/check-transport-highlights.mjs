@@ -50,6 +50,25 @@ assert.deepEqual(keywords('Blue/Bannan Line → Red Line → Green Line → Oran
   ['Brown Line', 'line-brown'],
   ['Yellow Line', 'line-yellow'],
 ]);
+assert.deepEqual(
+  keywords(
+    'Green Line: Ximen Station (G12/BL11) → Chiang Kai-Shek Memorial Hall (G10/R08) → Taipei 101/World Trade Center Station (R03); 捷運龍山寺站 → 小油坑服務站',
+  ),
+  [
+    ['Green Line', 'line-green'],
+    ['Ximen Station (G12/BL11)', 'station'],
+    ['Chiang Kai-Shek Memorial Hall (G10/R08)', 'station'],
+    ['Taipei 101/World Trade Center Station (R03)', 'station'],
+    ['捷運龍山寺站', 'station'],
+    ['小油坑服務站', 'station'],
+  ],
+);
+assert.deepEqual(keywords('Ximen (G12) → Dongmen (R07/O06) → BL14 → Longshan (BL10)'), [
+  ['Ximen (G12)', 'station'],
+  ['Dongmen (R07/O06)', 'station'],
+  ['BL14', 'station'],
+  ['Longshan (BL10)', 'station'],
+]);
 assert.deepEqual(keywords('Taoyuan Airport MRT Express A12 → A1 rồi taxi/Uber'), [
   ['Taoyuan Airport MRT Express', 'airport-rail'],
   ['taxi/Uber', 'taxi'],
@@ -88,7 +107,8 @@ assert.equal(busTimingWarningCount, 10);
 assert.equal(warnedItems.length, 10, 'Every timing warning must reference a live Notion itinerary row');
 assert.ok(warnedItems.some((item) => item.title.includes('bus 235')));
 assert.ok(warnedItems.some((item) => item.title.includes('Qingtiangang → Shilin')));
-assert.ok(warnedItems.some((item) => item.title.includes('Syntrend Creative Park')));
+assert.ok(warnedItems.some((item) => item.title.includes('bus 108')));
+assert.ok(warnedItems.some((item) => item.title.includes('BACKUP A')));
 assert.equal(
   getBusTimingWarning(itinerary.find((item) => item.title.includes('bus 568'))),
   undefined,
@@ -96,3 +116,4 @@ assert.equal(
 );
 
 console.log(`Transport highlight checks passed for ${itinerary.length} itinerary items.`);
+

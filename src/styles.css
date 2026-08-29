@@ -427,6 +427,34 @@ main {
   box-shadow: none;
 }
 
+.activity-card.activity-kind--transport {
+  border-left: 5px solid #3e8ca5;
+}
+
+.activity-card.activity-kind--visit {
+  border-left: 5px solid #df7a3f;
+}
+
+.activity-card.activity-kind--food {
+  border-left: 5px solid #bf6d43;
+}
+
+.activity-card.activity-kind--rest {
+  border-left: 5px solid #7b82a4;
+}
+
+.activity-card.activity-kind--shop {
+  border-left: 5px solid #9d6683;
+}
+
+.activity-card:not(.current).activity-kind--transport {
+  background: linear-gradient(110deg, #eef8fb 0, rgba(255, 253, 248, 0.98) 38%);
+}
+
+.activity-card:not(.current).activity-kind--visit {
+  background: linear-gradient(110deg, #fff3e8 0, rgba(255, 253, 248, 0.98) 38%);
+}
+
 .activity-summary {
   display: flex;
   align-items: flex-start;
@@ -531,6 +559,78 @@ main {
   font-size: 14px;
   line-height: 1.34;
   letter-spacing: -0.025em;
+}
+
+.activity-kind-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 7px;
+  margin-bottom: 7px;
+  color: #4b5f2d;
+  background: #edf0d5;
+  border: 1px solid rgba(76, 94, 46, 0.15);
+  border-radius: 999px;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.activity-kind-badge.transport {
+  color: #245d72;
+  background: #d9eff5;
+  border-color: #9bcbd8;
+}
+
+.activity-kind-badge.visit {
+  color: #994718;
+  background: #ffdfc6;
+  border-color: #f0b382;
+}
+
+.activity-kind-badge.food {
+  color: #92502f;
+  background: #f8e0cf;
+}
+
+.activity-kind-badge.rest {
+  color: #606881;
+  background: #e9e9f1;
+}
+
+.activity-kind-badge.shop {
+  color: #80516b;
+  background: #f2dfeb;
+}
+
+.activity-card.current .activity-kind-badge {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.activity-route-cues {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 8px;
+}
+
+.activity-route-cues .transport-token {
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+.route-cue-more {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 850;
+}
+
+.activity-card.current .route-cue-more {
+  color: rgba(255, 255, 255, 0.66);
 }
 
 .activity-area {
@@ -735,6 +835,12 @@ main {
   color: #6c5600;
   background: #fff2b8;
   border-color: #c9a814;
+}
+
+.transport-token--station {
+  color: #5d3477;
+  background: #f0e2f7;
+  border-color: #9b66b8;
 }
 
 .transport-token--bus {
@@ -2979,3 +3085,4 @@ main {
     transition-duration: 0.01ms !important;
   }
 }
+
