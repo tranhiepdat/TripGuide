@@ -523,33 +523,11 @@ function PreviewControls({
         <span>23:00</span>
       </div>
       <div className="preview-commit">
-        <div className="preview-time-control" role="group" aria-label="Chuyển giữa các điểm trong lịch trình">
-          <button
-            className="destination-step-button"
-            type="button"
-            aria-label={previous ? `Điểm trước: ${previous.title}` : 'Không có điểm trước'}
-            title={previous ? `Điểm trước: ${previous.title}` : 'Không có điểm trước'}
-            disabled={!previous}
-            onClick={() => previous && onDestinationChange(previous)}
-          >
-            <ChevronLeft size={21} />
-          </button>
-          <div className="preview-time-readout">
-            <small>Giờ Đài Loan</small>
-            <output htmlFor="preview-time-range" aria-live="polite" aria-atomic="true">
-              <strong>{formatPreviewClock(previewMinutes)}</strong>
-            </output>
-          </div>
-          <button
-            className="destination-step-button"
-            type="button"
-            aria-label={next ? `Điểm tiếp theo: ${next.title}` : 'Không có điểm tiếp theo'}
-            title={next ? `Điểm tiếp theo: ${next.title}` : 'Không có điểm tiếp theo'}
-            disabled={!next}
-            onClick={() => next && onDestinationChange(next)}
-          >
-            <ChevronRight size={21} />
-          </button>
+        <div className="preview-time-readout">
+          <small>Giờ Đài Loan</small>
+          <output htmlFor="preview-time-range" aria-live="polite" aria-atomic="true">
+            <strong>{formatPreviewClock(previewMinutes)}</strong>
+          </output>
         </div>
         {enabled ? (
           <button className="secondary-action" type="button" onClick={onReset}>
@@ -560,6 +538,28 @@ function PreviewControls({
             <Sparkles size={16} /> Bắt đầu xem thử
           </button>
         )}
+      </div>
+      <div className="destination-side-controls" role="group" aria-label="Chuyển giữa các điểm trong lịch trình">
+          <button
+            className="destination-step-button destination-step-button--previous"
+            type="button"
+            aria-label={previous ? `Điểm trước: ${previous.title}` : 'Không có điểm trước'}
+            title={previous ? `Điểm trước: ${previous.title}` : 'Không có điểm trước'}
+            disabled={!previous}
+            onClick={() => previous && onDestinationChange(previous)}
+          >
+            <ChevronLeft size={21} />
+          </button>
+          <button
+            className="destination-step-button destination-step-button--next"
+            type="button"
+            aria-label={next ? `Điểm tiếp theo: ${next.title}` : 'Không có điểm tiếp theo'}
+            title={next ? `Điểm tiếp theo: ${next.title}` : 'Không có điểm tiếp theo'}
+            disabled={!next}
+            onClick={() => next && onDestinationChange(next)}
+          >
+            <ChevronRight size={21} />
+          </button>
       </div>
     </section>
   );
