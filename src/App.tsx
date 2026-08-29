@@ -58,6 +58,7 @@ import {
   type TaxiDestination,
   type TravelPhrase,
 } from './data/phrases';
+import { getBusTimingWarning, type BusTimingWarning } from './lib/busTimingWarnings';
 import { tokenizeTransportText } from './lib/transportText';
 import './styles.css';
 
@@ -292,6 +293,18 @@ function TransportText({ text }: { text: string }) {
   );
 }
 
+function BusTimingCallout({ warning }: { warning: BusTimingWarning }) {
+  return (
+    <div className="bus-timing-warning" role="note" aria-label={`Cảnh báo canh giờ: ${warning.headline}`}>
+      <ShieldAlert size={17} />
+      <span>
+        <strong>{warning.headline}</strong>
+        <small><TransportText text={warning.detail} /></small>
+      </span>
+    </div>
+  );
+}
+
 function Header({
   online,
   onShare,
@@ -349,6 +362,7 @@ function ActivityCard({
 }) {
   const Icon = getCategoryIcon(item);
   const primaryCategory = item.categories[0] ?? 'Tham quan';
+  const timingWarning = getBusTimingWarning(item);
 
   return (
     <article className={`activity-card ${state} ${item.isBackup ? 'backup' : ''} ${compact ? 'compact' : ''}`}>
@@ -359,6 +373,7 @@ function ActivityCard({
         <span className="activity-copy">
           <span className="activity-time">
             {item.timeLabel}
+            {timingWarning && <em className="bus-timing-badge"><ShieldAlert size={11} /> Canh giờ</em>}
             {state === 'current' && <em>Đang diễn ra</em>}
             {state === 'past' && <Check size={13} aria-label="Đã xong" />}
           </span>
@@ -379,6 +394,7 @@ function ActivityCard({
               </span>
             ))}
           </div>
+          {timingWarning && <BusTimingCallout warning={timingWarning} />}
           <p><TransportText text={item.note} /></p>
           <div className="activity-actions">
             <button className="map-button primary" type="button" onClick={() => onDirections(item)}>
@@ -438,10 +454,13 @@ function BackupRouteOption({
   isSaved: boolean;
   onToggleSaved?: (item: ItineraryItem) => void;
 }) {
+  const timingWarning = getBusTimingWarning(item);
+
   return (
     <article className="backup-option-card">
       <div className="backup-option-label"><RefreshCcw size={13} /> BACKUP</div>
       <strong><TransportText text={item.title.replace(/^🔄\s*BACKUP\s*—\s*/i, '')} /></strong>
+      {timingWarning && <BusTimingCallout warning={timingWarning} />}
       <p><TransportText text={item.note} /></p>
       <div className="backup-option-actions">
         <button type="button" onClick={() => onDirections(item)}>

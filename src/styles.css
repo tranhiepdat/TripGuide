@@ -487,6 +487,7 @@ main {
 .activity-time {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 7px;
   margin-bottom: 5px;
   color: var(--orange-dark);
@@ -504,6 +505,21 @@ main {
   font-style: normal;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+}
+
+.activity-time .bus-timing-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: #a1261d;
+  background: #fee4e2;
+  border: 1px solid #f7b4ae;
+}
+
+.activity-card.current .activity-time .bus-timing-badge {
+  color: #fff;
+  background: #c9362b;
+  border-color: rgba(255, 255, 255, 0.38);
 }
 
 .activity-card.current .activity-time {
@@ -612,6 +628,59 @@ main {
 
 .activity-card.current .activity-details > p {
   color: rgba(255, 255, 255, 0.68);
+}
+
+.bus-timing-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 10px 11px;
+  margin-top: 10px;
+  color: #912018;
+  background: #fff0ef;
+  border: 1px solid #f3aaa4;
+  border-left: 4px solid #d7392f;
+  border-radius: 12px;
+  box-shadow: 0 5px 14px rgba(167, 35, 27, 0.08);
+}
+
+.bus-timing-warning > svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.bus-timing-warning > span {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.bus-timing-warning strong {
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.bus-timing-warning small {
+  color: #74433f;
+  font-size: 9px;
+  font-weight: 650;
+  line-height: 1.5;
+}
+
+.activity-card.current .bus-timing-warning {
+  color: #fff;
+  background: rgba(196, 49, 39, 0.28);
+  border-color: rgba(255, 166, 157, 0.48);
+  border-left-color: #ff7b70;
+}
+
+.activity-card.current .bus-timing-warning small {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.backup-option-card .bus-timing-warning {
+  margin-top: 9px;
 }
 
 .transport-token {
