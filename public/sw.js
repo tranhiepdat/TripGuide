@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tripguide-shell-v3';
+const CACHE_NAME = 'tripguide-shell-v4';
 const scopePath = new URL(self.registration.scope).pathname;
 const scoped = (path) => new URL(path, self.registration.scope).pathname;
 const APP_SHELL = [
@@ -93,3 +93,4 @@ self.addEventListener('fetch', (event) => {
     }),
   );
 });
+
