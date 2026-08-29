@@ -1,4 +1,4 @@
-export type PhraseCategory = 'essential' | 'transport' | 'food' | 'money' | 'help';
+export type PhraseCategory = 'polite' | 'essential' | 'transport' | 'food' | 'money' | 'help';
 
 export interface TravelPhrase {
   id: string;
@@ -28,6 +28,7 @@ export interface MoneyNumber {
 }
 
 export const phraseCategoryLabels: Record<PhraseCategory, string> = {
+  polite: 'Lịch sự',
   essential: 'Thiết yếu',
   transport: 'Đi lại',
   food: 'Ăn uống',
@@ -52,6 +53,77 @@ export const moneyNumbers: readonly MoneyNumber[] = [
 ];
 
 export const travelPhrases: readonly TravelPhrase[] = [
+  {
+    id: 'hello',
+    category: 'polite',
+    vi: 'Xin chào.',
+    zh: '你好。',
+    romanization: 'Nǐ hǎo.',
+  },
+  {
+    id: 'thank-you',
+    category: 'polite',
+    vi: 'Cảm ơn.',
+    zh: '謝謝。',
+    romanization: 'Xièxie.',
+  },
+  {
+    id: 'excuse-me',
+    category: 'polite',
+    vi: 'Xin lỗi / làm phiền.',
+    zh: '不好意思。',
+    romanization: 'Bù hǎoyìsi.',
+    note: 'Dùng để gọi nhân viên hoặc xin lỗi nhẹ.',
+  },
+  {
+    id: 'please',
+    category: 'polite',
+    vi: 'Làm ơn.',
+    zh: '請。',
+    romanization: 'Qǐng.',
+  },
+  {
+    id: 'menu-please',
+    category: 'polite',
+    vi: 'Cho mình xin menu.',
+    zh: '請給我菜單。',
+    romanization: 'Qǐng gěi wǒ càidān.',
+  },
+  {
+    id: 'look-first',
+    category: 'polite',
+    vi: 'Mình xem một chút.',
+    zh: '我先看一下。',
+    romanization: 'Wǒ xiān kàn yíxià.',
+  },
+  {
+    id: 'wait-a-moment',
+    category: 'polite',
+    vi: 'Chờ một chút.',
+    zh: '請等一下。',
+    romanization: 'Qǐng děng yíxià.',
+  },
+  {
+    id: 'you-are-welcome',
+    category: 'polite',
+    vi: 'Không có gì.',
+    zh: '不客氣。',
+    romanization: 'Bú kèqì.',
+  },
+  {
+    id: 'no-problem',
+    category: 'polite',
+    vi: 'Không sao.',
+    zh: '沒關係。',
+    romanization: 'Méi guānxi.',
+  },
+  {
+    id: 'goodbye',
+    category: 'polite',
+    vi: 'Tạm biệt.',
+    zh: '再見。',
+    romanization: 'Zàijiàn.',
+  },
   {
     id: 'price',
     category: 'essential',
