@@ -55,4 +55,3 @@ export function getBusTimingWarning(
 }
 
 export const busTimingWarningCount = Object.keys(warningsByItineraryId).length;
-

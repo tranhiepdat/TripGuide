@@ -59,7 +59,7 @@ import {
   type TravelPhrase,
 } from './data/phrases';
 import { getBusTimingWarning, type BusTimingWarning } from './lib/busTimingWarnings';
-import { tokenizeTransportText } from './lib/transportText';
+import { tokenizeTransportText, type TransportTextSegment } from './lib/transportText';
 import './styles.css';
 
 type AppMode = 'now' | 'saved' | 'phrases' | 'route';
@@ -314,12 +314,45 @@ function getRouteCues(item: ItineraryItem) {
     });
 }
 
+const STATION_LINE_LABELS = {
+  A: 'Airport MRT',
+  BL: 'Tuyến xanh dương',
+  BR: 'Tuyến nâu',
+  G: 'Tuyến xanh lá',
+  O: 'Tuyến cam',
+  R: 'Tuyến đỏ',
+  Y: 'Tuyến vàng',
+} as const;
+
+type StationLineCode = keyof typeof STATION_LINE_LABELS;
+
+function getStationLines(value: string): StationLineCode[] {
+  const lines = [...value.matchAll(/(?:^|[^A-Z])(BL|BR|A|G|O|R|Y)\d{1,2}(?=$|[^\d])/g)]
+    .map((match) => match[1] as StationLineCode);
+  return [...new Set(lines)];
+}
+
+function TransportToken({ segment }: { segment: TransportTextSegment }) {
+  const stationLines = segment.kind === 'station' ? getStationLines(segment.value) : [];
+
+  return (
+    <span className={`transport-token transport-token--${segment.kind}`}>
+      {stationLines.length > 0 && (
+        <span className="station-line-markers" aria-label={stationLines.map((line) => STATION_LINE_LABELS[line]).join(', ')}>
+          {stationLines.map((line) => (
+            <i className={`station-line-marker station-line-marker--${line.toLowerCase()}`} key={line} aria-hidden="true" />
+          ))}
+        </span>
+      )}
+      {segment.value}
+    </span>
+  );
+}
+
 function TransportText({ text }: { text: string }) {
   return tokenizeTransportText(text).map((segment, index) =>
     segment.kind ? (
-      <span className={`transport-token transport-token--${segment.kind}`} key={`${segment.value}-${index}`}>
-        {segment.value}
-      </span>
+      <TransportToken segment={segment} key={`${segment.value}-${index}`} />
     ) : (
       segment.value
     ),
@@ -398,6 +431,7 @@ function ActivityCard({
   const activityKind = getActivityKind(item);
   const routeCues = getRouteCues(item);
   const visibleRouteCues = routeCues.slice(0, 12);
+  const detailCategories = item.categories.filter((category) => category !== 'Di chuyển');
   const timingWarning = getBusTimingWarning(item);
 
   return (
@@ -415,15 +449,10 @@ function ActivityCard({
           </span>
           <span className={`activity-kind-badge ${activityKind.className}`}>{activityKind.label}</span>
           <strong><TransportText text={item.title} /></strong>
-          {visibleRouteCues.length > 0 && (
+          {state !== 'current' && !expanded && visibleRouteCues.length > 0 && (
             <span className="activity-route-cues" aria-label="Tuyến MRT và ga trong kế hoạch">
               {visibleRouteCues.map((segment, index) => (
-                <span
-                  className={`transport-token transport-token--${segment.kind}`}
-                  key={`${segment.value}-${index}`}
-                >
-                  {segment.value}
-                </span>
+                <TransportToken segment={segment} key={`${segment.value}-${index}`} />
               ))}
               {routeCues.length > visibleRouteCues.length && (
                 <span className="route-cue-more">+{routeCues.length - visibleRouteCues.length}</span>
@@ -439,13 +468,15 @@ function ActivityCard({
 
       {(expanded || state === 'current') && (
         <div className="activity-details">
-          <div className="category-row">
-            {item.categories.map((category) => (
-              <span className={`category-pill ${categoryClass(category)}`} key={category}>
-                {category}
-              </span>
-            ))}
-          </div>
+          {detailCategories.length > 0 && (
+            <div className="category-row">
+              {detailCategories.map((category) => (
+                <span className={`category-pill ${categoryClass(category)}`} key={category}>
+                  {category}
+                </span>
+              ))}
+            </div>
+          )}
           {timingWarning && <BusTimingCallout warning={timingWarning} />}
           <p><TransportText text={item.note} /></p>
           <div className="activity-actions">
@@ -1694,4 +1725,3 @@ function App() {
 }
 
 export default App;
-

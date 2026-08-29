@@ -251,4 +251,3 @@ assert.equal(supplementalFixturePlan.searchParams.get('travelmode'), 'transit');
 assert.equal(supplementalFixturePlan.searchParams.has('waypoints'), false);
 
 console.log(`Map route checks passed for ${itinerary.length} itinerary items.`);
-

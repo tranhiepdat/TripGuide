@@ -74,13 +74,13 @@ const highlightRules: readonly HighlightRule[] = [
   {
     kind: 'station',
     pattern: stationPattern(
-      '(?:MRT\\s+)?(?:[\\p{Lu}\\p{N}][\\p{L}\\p{N}\'’/-]*\\s+){0,6}[\\p{Lu}\\p{N}][\\p{L}\\p{N}\'’/-]*\\s+(?:Station|Bus\\s+Terminal|Service\\s+Center)(?:\\s*\\((?:G|R|O|BL|BR|Y)\\d{2}(?:\\/(?:G|R|O|BL|BR|Y)\\d{2})*\\))?',
+      '(?:MRT\\s+)?(?:[\\p{Lu}\\p{N}][\\p{L}\\p{N}\'’/-]*\\s+){0,6}[\\p{Lu}\\p{N}][\\p{L}\\p{N}\'’/-]*\\s+(?:Station|Bus\\s+Terminal|Service\\s+Center)(?:\\s*\\((?:A|G|R|O|BL|BR|Y)\\d{1,2}(?:\\/(?:A|G|R|O|BL|BR|Y)\\d{1,2})*\\))?',
     ),
   },
   {
     kind: 'station',
     pattern: stationPattern(
-      '(?:[\\p{Lu}\\p{N}][\\p{L}\\p{N}\'’/-]*\\s+){0,5}[\\p{Lu}\\p{N}][\\p{L}\\p{N}\'’/-]*\\s*\\((?:G|R|O|BL|BR|Y)\\d{2}(?:\\/(?:G|R|O|BL|BR|Y)\\d{2})*\\)',
+      '(?:[\\p{Lu}\\p{N}][\\p{L}\\p{N}\'’/-]*\\s+){0,5}[\\p{Lu}\\p{N}][\\p{L}\\p{N}\'’/-]*\\s*\\((?:A|G|R|O|BL|BR|Y)\\d{1,2}(?:\\/(?:A|G|R|O|BL|BR|Y)\\d{1,2})*\\)',
     ),
   },
   {
@@ -180,4 +180,3 @@ export function tokenizeTransportText(value: string): readonly TransportTextSegm
 
   return segments;
 }
-

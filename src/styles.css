@@ -838,10 +838,34 @@ main {
 }
 
 .transport-token--station {
-  color: #5d3477;
-  background: #f0e2f7;
-  border-color: #9b66b8;
+  color: #334b43;
+  background: #e5ece8;
+  border-color: #84998f;
 }
+
+.station-line-markers {
+  display: inline-flex;
+  gap: 2px;
+  margin-right: 4px;
+  vertical-align: 0.08em;
+}
+
+.station-line-marker {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.86);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(20, 38, 31, 0.1);
+}
+
+.station-line-marker--a { background: #7c55b3; }
+.station-line-marker--bl { background: #3978ce; }
+.station-line-marker--br { background: #916352; }
+.station-line-marker--g { background: #3c9660; }
+.station-line-marker--o { background: #e78335; }
+.station-line-marker--r { background: #d44858; }
+.station-line-marker--y { background: #c9a814; }
 
 .transport-token--bus {
   color: #17566b;
@@ -3085,4 +3109,3 @@ main {
     transition-duration: 0.01ms !important;
   }
 }
-

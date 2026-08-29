@@ -69,6 +69,10 @@ assert.deepEqual(keywords('Ximen (G12) → Dongmen (R07/O06) → BL14 → Longsh
   ['BL14', 'station'],
   ['Longshan (BL10)', 'station'],
 ]);
+assert.deepEqual(keywords('Airport Terminal 1 Station (A12) → Taipei Main Station (A1)'), [
+  ['Airport Terminal 1 Station (A12)', 'station'],
+  ['Taipei Main Station (A1)', 'station'],
+]);
 assert.deepEqual(keywords('Taoyuan Airport MRT Express A12 → A1 rồi taxi/Uber'), [
   ['Taoyuan Airport MRT Express', 'airport-rail'],
   ['taxi/Uber', 'taxi'],
@@ -116,4 +120,3 @@ assert.equal(
 );
 
 console.log(`Transport highlight checks passed for ${itinerary.length} itinerary items.`);
-
