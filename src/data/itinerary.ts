@@ -974,4 +974,3 @@ export function getDirectionsUrl(
 
   return `https://www.google.com/maps/dir/?${params.toString()}`;
 }
-
