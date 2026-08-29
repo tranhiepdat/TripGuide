@@ -22,6 +22,7 @@ assert.doesNotMatch(tokenizerSource, /\(\?<\!/, 'Mobile Safari-compatible tokeni
 
 const { tokenizeTransportText } = await loadTypescriptModule('../src/lib/transportText.ts');
 const { itinerary } = await loadTypescriptModule('../src/data/itinerary.ts');
+const { busTimingWarningCount, getBusTimingWarning } = await loadTypescriptModule('../src/lib/busTimingWarnings.ts');
 
 function keywords(value) {
   return tokenizeTransportText(value)
@@ -81,5 +82,17 @@ for (const value of itinerary.flatMap((item) => [item.title, item.note, item.map
     'Plain text segments must be coalesced',
   );
 }
+
+const warnedItems = itinerary.filter((item) => getBusTimingWarning(item));
+assert.equal(busTimingWarningCount, 10);
+assert.equal(warnedItems.length, 10, 'Every timing warning must reference a live Notion itinerary row');
+assert.ok(warnedItems.some((item) => item.title.includes('bus 235')));
+assert.ok(warnedItems.some((item) => item.title.includes('Qingtiangang → Shilin')));
+assert.ok(warnedItems.some((item) => item.title.includes('Syntrend Creative Park')));
+assert.equal(
+  getBusTimingWarning(itinerary.find((item) => item.title.includes('bus 568'))),
+  undefined,
+  'Frequent bus 568 should not be marked as a scarce-service warning',
+);
 
 console.log(`Transport highlight checks passed for ${itinerary.length} itinerary items.`);
