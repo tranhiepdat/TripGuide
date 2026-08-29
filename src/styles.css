@@ -1770,25 +1770,54 @@ main {
 
 .destination-step-button {
   display: grid;
-  width: 44px;
-  height: 44px;
+  position: absolute;
+  top: 0;
+  width: 48px;
+  height: 48px;
   padding: 0;
-  color: var(--ink);
-  background: rgba(255, 255, 255, 0.78);
-  border: 1px solid rgba(20, 38, 31, 0.09);
+  color: white;
+  background: rgba(20, 38, 31, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.62);
   border-radius: 50%;
-  box-shadow: 0 5px 15px rgba(56, 45, 36, 0.08);
+  box-shadow: 0 8px 24px rgba(20, 38, 31, 0.24);
+  backdrop-filter: blur(14px) saturate(1.2);
   cursor: pointer;
   place-items: center;
+  transform: translateY(-50%);
+  transition: opacity 160ms ease, transform 160ms ease, background 160ms ease;
 }
 
 .destination-step-button:active:not(:disabled) {
-  transform: translateY(1px);
+  background: var(--orange);
+  transform: translateY(calc(-50% + 1px)) scale(0.96);
 }
 
 .destination-step-button:disabled {
   opacity: 0.34;
   cursor: default;
+}
+
+.destination-side-controls {
+  position: fixed;
+  z-index: 42;
+  top: 50%;
+  left: 50%;
+  width: min(100%, 560px);
+  height: 0;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+
+.destination-side-controls .destination-step-button {
+  pointer-events: auto;
+}
+
+.destination-step-button--previous {
+  left: max(8px, env(safe-area-inset-left));
+}
+
+.destination-step-button--next {
+  right: max(8px, env(safe-area-inset-right));
 }
 
 .time-slider-row {
@@ -1844,12 +1873,6 @@ main {
   flex-wrap: wrap;
   gap: 12px;
   margin-top: 18px;
-}
-
-.preview-time-control {
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
 .preview-time-readout {
@@ -2880,3 +2903,4 @@ main {
     transition-duration: 0.01ms !important;
   }
 }
+
