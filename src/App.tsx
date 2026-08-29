@@ -275,10 +275,43 @@ function categoryClass(category: string) {
 }
 
 function isTransport(item: ItineraryItem) {
-  return (
-    item.categories.includes('Di chuyển') ||
-    /MRT|bus|train|flight|taxi|station|airport/i.test(item.mapSearch)
-  );
+  return item.categories.includes('Di chuyển');
+}
+
+function getActivityKind(item: ItineraryItem) {
+  if (isTransport(item)) return { className: 'transport', label: 'Chặng di chuyển' };
+  if (item.categories.includes('Tham quan')) return { className: 'visit', label: 'Điểm tham quan' };
+  if (item.categories.includes('Ăn uống')) return { className: 'food', label: 'Ăn uống' };
+  if (item.categories.includes('Nghỉ')) return { className: 'rest', label: 'Nghỉ ngơi' };
+  if (item.categories.some((category) => category === 'Mua sắm' || category === 'Tech')) {
+    return { className: 'shop', label: 'Mua sắm / Tech' };
+  }
+  return { className: 'visit', label: item.categories[0] ?? 'Điểm đến' };
+}
+
+const ROUTE_CUE_KINDS = new Set([
+  'airport-rail',
+  'line-blue',
+  'line-red',
+  'line-green',
+  'line-orange',
+  'line-brown',
+  'line-yellow',
+  'station',
+]);
+
+function getRouteCues(item: ItineraryItem) {
+  if (!isTransport(item)) return [];
+
+  const seen = new Set<string>();
+  return tokenizeTransportText(`${item.title}. ${item.note}`)
+    .filter((segment) => segment.kind && ROUTE_CUE_KINDS.has(segment.kind))
+    .filter((segment) => {
+      const key = segment.value.toLocaleLowerCase().replace(/\s+/g, ' ').trim();
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
 }
 
 function TransportText({ text }: { text: string }) {
@@ -362,10 +395,13 @@ function ActivityCard({
 }) {
   const Icon = getCategoryIcon(item);
   const primaryCategory = item.categories[0] ?? 'Tham quan';
+  const activityKind = getActivityKind(item);
+  const routeCues = getRouteCues(item);
+  const visibleRouteCues = routeCues.slice(0, 12);
   const timingWarning = getBusTimingWarning(item);
 
   return (
-    <article className={`activity-card ${state} ${item.isBackup ? 'backup' : ''} ${compact ? 'compact' : ''}`}>
+    <article className={`activity-card activity-kind--${activityKind.className} ${state} ${item.isBackup ? 'backup' : ''} ${compact ? 'compact' : ''}`}>
       <button className="activity-summary" type="button" onClick={onToggle} aria-expanded={expanded}>
         <span className={`activity-icon ${categoryClass(primaryCategory)}`}>
           <Icon size={20} />
@@ -377,7 +413,23 @@ function ActivityCard({
             {state === 'current' && <em>Đang diễn ra</em>}
             {state === 'past' && <Check size={13} aria-label="Đã xong" />}
           </span>
+          <span className={`activity-kind-badge ${activityKind.className}`}>{activityKind.label}</span>
           <strong><TransportText text={item.title} /></strong>
+          {visibleRouteCues.length > 0 && (
+            <span className="activity-route-cues" aria-label="Tuyến MRT và ga trong kế hoạch">
+              {visibleRouteCues.map((segment, index) => (
+                <span
+                  className={`transport-token transport-token--${segment.kind}`}
+                  key={`${segment.value}-${index}`}
+                >
+                  {segment.value}
+                </span>
+              ))}
+              {routeCues.length > visibleRouteCues.length && (
+                <span className="route-cue-more">+{routeCues.length - visibleRouteCues.length}</span>
+              )}
+            </span>
+          )}
           <span className="activity-area">
             <MapPin size={13} /> {item.area}
           </span>
@@ -1134,7 +1186,7 @@ function RouteScreen({
         <span className="source-icon"><Database size={21} /></span>
         <span>
           <small>Nguồn lịch trình</small>
-          <strong>34 mục từ Notion · {backupCount} backup</strong>
+          <strong>{itinerary.length} mục từ Notion · {backupCount} backup</strong>
           <em>Cập nhật {SYNCED_LABEL} · app giữ snapshot để xem offline</em>
         </span>
         <ArrowUpRight size={19} />
@@ -1642,3 +1694,4 @@ function App() {
 }
 
 export default App;
+
